@@ -10,7 +10,7 @@ export default function Navbar() {
         className="flex items-center gap-2 font-bold text-xl hover:text-gray-200 transition"
       >
         <span>✝</span> 
-        <span>Fe y Comunidad</span>
+        <span>Iglesia Principe de Paz</span>
       </Link>
 
       {/* Enlaces del Menú */}
@@ -18,7 +18,7 @@ export default function Navbar() {
       <div className="hidden md:flex gap-8 text-sm font-medium">
         <Link href="/#invitados" className="hover:text-yellow-400 transition">Ponentes</Link>
         <Link href="/#ubicacion" className="hover:text-yellow-400 transition">Ubicación</Link>
-        <Link href="/#pago" className="hover:text-yellow-400 transition">Pago</Link>
+        <Link href="/#pago" className="hover:text-yellow-400 transition">Metodos</Link>
       </div>
 
       {/* 2. Botón que manda al formulario de registro */}
