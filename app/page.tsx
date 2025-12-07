@@ -5,8 +5,8 @@ import Speakers from '@/components/Speakers';
 import Location from '@/components/Location';
 import PaymentMethods from '@/components/PaymentMethods';
 
-// Hacemos que la página se regenere en cada petición para ver cambios al instante
-export const dynamic = 'force-dynamic';
+// Regenera la página máximo 1 vez por minuto.
+export const revalidate = 60; // (Segundos)
 
 export default async function Home() {
   // 1. Datos Generales

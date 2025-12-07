@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { RefreshCw, Calendar, Search, X, CheckCircle, Clock, Eye, Download } from 'lucide-react';
+import { RefreshCw, Search, X, CheckCircle, Clock, Eye, Download, MessageCircle, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function RegistrationsTable() {
@@ -10,7 +10,6 @@ export default function RegistrationsTable() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   
-  // Estado para el Modal (Guardamos el registro seleccionado)
   const [selectedReg, setSelectedReg] = useState<any | null>(null);
   const [processing, setProcessing] = useState(false);
 
@@ -31,7 +30,6 @@ export default function RegistrationsTable() {
     fetchRegistros();
   }, []);
 
-  // Función para confirmar el registro
   const handleConfirmar = async () => {
     if (!selectedReg) return;
     setProcessing(true);
@@ -44,13 +42,10 @@ export default function RegistrationsTable() {
 
       if (error) throw error;
 
-      // Actualizar localmente para no recargar todo
       const updatedRegistros = registros.map(r => 
         r.id === selectedReg.id ? { ...r, estado: 'Confirmado' } : r
       );
       setRegistros(updatedRegistros);
-      
-      // Actualizar el modal también
       setSelectedReg({ ...selectedReg, estado: 'Confirmado' });
       
       toast.success("¡Registro confirmado exitosamente!");
@@ -61,12 +56,11 @@ export default function RegistrationsTable() {
     }
   };
 
-  // Filtrado
   const filteredRegistros = registros.filter((reg) => {
     const term = searchTerm.toLowerCase();
     return (
       reg.nombre_completo.toLowerCase().includes(term) ||
-      reg.correo.toLowerCase().includes(term) ||
+      (reg.departamento && reg.departamento.toLowerCase().includes(term)) || // Búsqueda por departamento
       (reg.iglesia && reg.iglesia.toLowerCase().includes(term))
     );
   });
@@ -74,7 +68,7 @@ export default function RegistrationsTable() {
   return (
     <>
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        {/* Cabecera con Buscador */}
+        {/* Cabecera */}
         <div className="p-6 border-b border-gray-200 flex flex-col md:flex-row justify-between items-center gap-4 bg-gray-50">
           <div className="flex items-center gap-3">
             <h2 className="text-xl font-bold text-gray-800">Inscripciones</h2>
@@ -90,7 +84,7 @@ export default function RegistrationsTable() {
               </div>
               <input
                 type="text"
-                placeholder="Buscar..."
+                placeholder="Buscar nombre, dpto, iglesia..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
@@ -112,8 +106,8 @@ export default function RegistrationsTable() {
               <tr>
                 <th className="px-6 py-4">Estado</th>
                 <th className="px-6 py-4">Fecha</th>
-                <th className="px-6 py-4">Nombre</th>
-                <th className="px-6 py-4">Contacto</th>
+                <th className="px-6 py-4">Nombre / WhatsApp</th>
+                <th className="px-6 py-4">Ubicación</th>
                 <th className="px-6 py-4 text-center">Acciones</th>
               </tr>
             </thead>
@@ -134,18 +128,26 @@ export default function RegistrationsTable() {
                   <td className="px-6 py-4">
                     {new Date(reg.created_at).toLocaleDateString('es-PE', { day: '2-digit', month: 'short' })}
                   </td>
-                  <td className="px-6 py-4 font-bold text-gray-900">
-                    {reg.nombre_completo}
+                  <td className="px-6 py-4">
+                    <p className="font-bold text-gray-900">{reg.nombre_completo}</p>
+                    <button 
+                        className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-green-600 mt-1 transition"
+                    >
+                        <MessageCircle className="w-3 h-3" /> {reg.numero}
+                    </button>
                   </td>
-                  <td className="px-6 py-4 text-gray-500">
-                    {reg.correo}
+                  <td className="px-6 py-4">
+                    <div className="flex flex-col">
+                        <span className="text-gray-900 font-medium">{reg.departamento}</span>
+                        <span className="text-xs text-gray-500">{reg.iglesia}</span>
+                    </div>
                   </td>
                   <td className="px-6 py-4 text-center">
                     <button 
                       onClick={() => setSelectedReg(reg)}
                       className="bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center justify-center mx-auto gap-1 border border-blue-200"
                     >
-                      <Eye className="w-4 h-4" /> Ver Detalles
+                      <Eye className="w-4 h-4" /> Ver
                     </button>
                   </td>
                 </tr>
@@ -160,47 +162,47 @@ export default function RegistrationsTable() {
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             
-            {/* Header del Modal */}
             <div className="p-6 border-b border-gray-100 flex justify-between items-start sticky top-0 bg-white z-10">
               <div>
                 <h3 className="text-xl font-bold text-gray-900">Detalles de Inscripción</h3>
-                <p className="text-sm text-gray-500">ID: {selectedReg.id}</p>
+                <p className="text-sm text-gray-500">ID: {selectedReg.id.slice(0,8)}...</p>
               </div>
               <button onClick={() => setSelectedReg(null)} className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition">
                 <X className="w-6 h-6" />
               </button>
             </div>
 
-            {/* Cuerpo del Modal */}
             <div className="p-6 space-y-8">
               
-              {/* Sección 1: Datos Personales */}
+              {/* Sección Datos */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="text-xs font-bold text-gray-500 uppercase">Nombre Completo</label>
                   <p className="text-lg font-medium text-gray-900">{selectedReg.nombre_completo}</p>
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-gray-500 uppercase">Estado Actual</label>
+                  <label className="text-xs font-bold text-gray-500 uppercase">Estado</label>
                   <div className="mt-1">
                     {selectedReg.estado === 'Confirmado' ? (
                         <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-bold">Confirmado</span>
                     ) : (
-                        <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm font-bold">Pendiente de Revisión</span>
+                        <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm font-bold">Pendiente</span>
                     )}
                   </div>
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-gray-500 uppercase">Correo</label>
-                  <p className="text-gray-900">{selectedReg.correo}</p>
+                  <label className="text-xs font-bold text-gray-500 uppercase">Celular / WhatsApp</label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <p className="text-gray-900 text-lg">{selectedReg.numero}</p>
+                  </div>
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-gray-500 uppercase">Celular</label>
-                  <p className="text-gray-900">{selectedReg.numero}</p>
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-gray-500 uppercase">Iglesia</label>
-                  <p className="text-gray-900">{selectedReg.iglesia || '-'}</p>
+                  <label className="text-xs font-bold text-gray-500 uppercase">Ubicación</label>
+                  <div className="flex items-center gap-1 mt-1">
+                    <MapPin className="w-4 h-4 text-blue-500" />
+                    <p className="text-gray-900 font-medium">{selectedReg.departamento}</p>
+                  </div>
+                  <p className="text-sm text-gray-500 pl-5">{selectedReg.iglesia}</p>
                 </div>
                 <div>
                   <label className="text-xs font-bold text-gray-500 uppercase">Edad</label>
@@ -208,20 +210,19 @@ export default function RegistrationsTable() {
                 </div>
               </div>
 
-              {/* Sección 2: Galería de Comprobantes */}
+              {/* Galería */}
               <div className="bg-gray-50 p-6 rounded-xl border border-gray-200">
                 <h4 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
                     <Download className="w-4 h-4" /> Comprobantes de Pago
                 </h4>
                 
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {/* Lógica para manejar Array o String */}
                   {(() => {
                     const vouchers = Array.isArray(selectedReg.voucher_url) 
                         ? selectedReg.voucher_url 
                         : (selectedReg.voucher_url ? [selectedReg.voucher_url] : []);
                     
-                    if (vouchers.length === 0) return <p className="text-gray-400 italic text-sm">No hay archivos adjuntos.</p>;
+                    if (vouchers.length === 0) return <p className="text-gray-400 italic text-sm">No hay archivos.</p>;
 
                     return vouchers.map((url: string, idx: number) => (
                       <a 
@@ -242,7 +243,6 @@ export default function RegistrationsTable() {
               </div>
             </div>
 
-            {/* Footer con Acciones */}
             <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 sticky bottom-0">
               <button 
                 onClick={() => setSelectedReg(null)}

@@ -8,8 +8,8 @@ export interface Ponente {
 export interface Registro {
   id: string;
   nombre_completo: string;
-  correo: string;
   iglesia: string;
+  departamento: string;
   edad: number | null;
   numero: string;
   created_at: string;

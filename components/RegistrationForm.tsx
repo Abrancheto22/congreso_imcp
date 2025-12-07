@@ -3,17 +3,26 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { supabase } from '@/lib/supabase';
-import { Upload, CheckCircle, Loader2, X } from 'lucide-react';
+import { Upload, CheckCircle, Loader2, X, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
+// 1. IMPORTAR LA LIBRERÍA DE COMPRESIÓN
+import imageCompression from 'browser-image-compression';
+
+const DEPARTAMENTOS = [
+  "Amazonas", "Áncash", "Apurímac", "Arequipa", "Ayacucho", "Cajamarca",
+  "Callao", "Cusco", "Huancavelica", "Huánuco", "Ica", "Junín", "La Libertad",
+  "Lambayeque", "Lima", "Loreto", "Madre de Dios", "Moquegua", "Pasco",
+  "Piura", "Puno", "San Martín", "Tacna", "Tumbes", "Ucayali"
+];
 
 export default function RegistrationForm() {
   const [uploading, setUploading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [compressing, setCompressing] = useState(false); // Nuevo estado visual
   
   const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm();
 
-  // Autoreset después de 5 segundos de éxito
   useEffect(() => {
     if (success) {
       const timer = setTimeout(() => {
@@ -34,7 +43,6 @@ export default function RegistrationForm() {
     }
   };
 
-  // Limpieza de memoria de imágenes
   useEffect(() => {
     return () => {
       previewUrls.forEach(url => URL.revokeObjectURL(url));
@@ -43,20 +51,42 @@ export default function RegistrationForm() {
 
   const onSubmit = async (data: any) => {
     setUploading(true);
+    setCompressing(true); // Avisamos que estamos comprimiendo
+    
     try {
       const fileList = data.comprobante;
       if (!fileList || fileList.length === 0) throw new Error("Debes subir al menos un comprobante.");
 
       const uploadedUrls: string[] = [];
 
-      // Subida de archivos
-      for (const file of Array.from(fileList as FileList)) {
-        const fileExt = file.name.split('.').pop();
+      // Opciones de compresión
+      const options = {
+        maxSizeMB: 0.8,          // Máximo 800KB aprox
+        maxWidthOrHeight: 1920,  // Redimensionar si es muy grande (Full HD)
+        useWebWorker: true,      // Usar proceso en segundo plano para no trabar el navegador
+        fileType: 'image/jpeg'   // Convertir todo a JPG (más ligero)
+      };
+
+      for (const originalFile of Array.from(fileList as FileList)) {
+        
+        // 2. COMPRIMIR LA IMAGEN
+        let fileToUpload = originalFile;
+        try {
+            // Solo comprimimos si es imagen
+            if (originalFile.type.startsWith('image/')) {
+                fileToUpload = await imageCompression(originalFile, options);
+            }
+        } catch (error) {
+            console.warn("No se pudo comprimir, subiendo original...", error);
+        }
+
+        // 3. SUBIR A SUPABASE
+        const fileExt = fileToUpload.name.split('.').pop() || 'jpg';
         const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
 
         const { error: uploadError } = await supabase.storage
           .from('congreso')
-          .upload(fileName, file);
+          .upload(fileName, fileToUpload);
 
         if (uploadError) throw new Error(`Error al subir imagen`);
 
@@ -67,13 +97,14 @@ export default function RegistrationForm() {
         uploadedUrls.push(publicUrlData.publicUrl);
       }
 
-      // Guardado en BD
+      setCompressing(false); // Terminó compresión
+
       const { error: insertError } = await supabase
         .from('registros')
         .insert([
           {
             nombre_completo: data.nombre,
-            correo: data.correo,
+            departamento: data.departamento,
             iglesia: data.iglesia,
             edad: parseInt(data.edad),
             numero: data.celular,
@@ -90,6 +121,7 @@ export default function RegistrationForm() {
       toast.error(error.message || 'Error al registrar');
     } finally {
       setUploading(false);
+      setCompressing(false);
     }
   };
 
@@ -129,31 +161,37 @@ export default function RegistrationForm() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Iglesia de Procedencia</label>
           <input 
-            type="email" 
-            {...register("correo", { required: "Requerido" })} 
+            {...register("iglesia")} 
             className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition placeholder:text-gray-400" 
-            placeholder="ejemplo@gmail.com"
+            placeholder="Ej: Comunidad de Fe"
           />
         </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Departamento</label>
+          <div className="relative">
+            <MapPin className="absolute left-3 top-3 w-4 h-4 text-gray-400 pointer-events-none" />
+            <select
+                {...register("departamento", { required: "Selecciona uno" })}
+                className="w-full pl-9 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition bg-white text-gray-700 appearance-none cursor-pointer"
+            >
+                <option value="">Seleccionar...</option>
+                {DEPARTAMENTOS.map(dep => (
+                    <option key={dep} value={dep}>{dep}</option>
+                ))}
+            </select>
+          </div>
+          {errors.departamento && <span className="text-red-500 text-xs mt-1">Selecciona tu región</span>}
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-5">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Celular / WhatsApp</label>
           <input 
             {...register("celular", { required: "Requerido" })} 
             className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition placeholder:text-gray-400" 
             placeholder="987 654 321"
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-5">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Iglesia de Procedencia</label>
-          <input 
-            {...register("iglesia")} 
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition placeholder:text-gray-400" 
-            placeholder="Ej: Comunidad de Fe"
           />
         </div>
         <div>
@@ -173,26 +211,25 @@ export default function RegistrationForm() {
           Comprobante de Pago (Foto o Captura)
         </label>
         
-        <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-xl hover:bg-gray-50 transition cursor-pointer relative group bg-gray-50/50">
-          <div className="space-y-1 text-center">
+        <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-xl hover:bg-gray-50 transition relative group bg-gray-50/50 overflow-hidden">
+          
+          <div className="space-y-1 text-center pointer-events-none">
             <Upload className="mx-auto h-10 w-10 text-gray-400 group-hover:text-blue-500 transition" />
             <div className="flex text-sm text-gray-600 justify-center mt-2">
-              <label className="relative cursor-pointer rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none">
-                <span>Subir archivos</span>
-                <input 
-                  type="file" 
-                  multiple 
-                  accept="image/*"
-                  className="sr-only"
-                  onChange={handleFileChange} 
-                />
-              </label>
+              <span className="font-medium text-blue-600">Subir archivos</span>
             </div>
             <p className="text-xs text-gray-400">Puede seleccionar más de uno</p>
           </div>
+
+          <input 
+            type="file" 
+            multiple 
+            accept="image/*"
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+            onChange={handleFileChange} 
+          />
         </div>
 
-        {/* Galería Previa */}
         {previewUrls.length > 0 && (
           <div className="mt-4 grid grid-cols-4 gap-2 animate-in fade-in">
             {previewUrls.map((url, index) => (
@@ -219,7 +256,14 @@ export default function RegistrationForm() {
         disabled={uploading}
         className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition shadow-lg hover:shadow-xl flex justify-center items-center gap-2 disabled:opacity-70 transform active:scale-95"
       >
-        {uploading ? <><Loader2 className="animate-spin" /> Registrando...</> : "Finalizar Registro"}
+        {uploading ? (
+          <>
+            <Loader2 className="animate-spin" /> 
+            {compressing ? "Comprimiendo..." : "Registrando..."}
+          </>
+        ) : (
+          "Finalizar Registro"
+        )}
       </button>
     </form>
   );
