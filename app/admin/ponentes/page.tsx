@@ -84,7 +84,8 @@ export default function AdminPonentesPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {ponentes.map((ponente) => (
               <div key={ponente.id} className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex items-center gap-4 relative group hover:shadow-md transition">
-                
+              {/* ENVOLVEMOS FOTO Y TEXTO EN UN LINK PARA EDITAR */}
+              <Link href={`/admin/ponentes/${ponente.id}`} className="flex items-center gap-4 flex-1 cursor-pointer">
                 {/* Foto */}
                 <div className="w-16 h-16 rounded-full overflow-hidden border border-gray-100 flex-shrink-0 bg-gray-50">
                   {ponente.foto_url ? (
@@ -101,7 +102,7 @@ export default function AdminPonentesPage() {
                   <h3 className="font-bold text-gray-900">{ponente.nombre}</h3>
                   <p className="text-sm text-blue-600">{ponente.titulo}</p>
                 </div>
-
+            </Link>
                 {/* Botón Eliminar (Abre el modal) */}
                 <button
                   onClick={() => confirmDelete(ponente.id)} // <--- Llama a la función de abrir modal
