@@ -3,6 +3,8 @@ import RegistrationForm from '@/components/RegistrationForm';
 import PaymentSidebar from '@/components/PaymentSidebar'; // <--- Importamos el nuevo componente
 import { supabase } from '@/lib/supabase';
 
+export const dynamic = 'force-dynamic';
+
 // Traemos los datos desde el servidor
 async function getPagos() {
   const { data } = await supabase.from('pagos').select('*');
