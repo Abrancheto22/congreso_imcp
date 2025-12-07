@@ -10,8 +10,12 @@ export interface Registro {
   nombre_completo: string;
   iglesia: string;
   departamento: string;
+  provincia: string | null;
+  ciudad: string | null;
   edad: number | null;
   numero: string;
+  estado: string;
+  voucher_url: string[] | string | null;
   created_at: string;
 }
 
