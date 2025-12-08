@@ -22,6 +22,7 @@ export interface Registro {
 export interface DatosGenerales {
   id: string;
   nombre_evento: string;
+  tema: string | null;
   fecha_evento: string;
   lugar: string;
   slogan: string | null;

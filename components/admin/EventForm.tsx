@@ -20,6 +20,7 @@ export default function EventForm() {
         setRecordId(data.id);
         setValue('nombre_evento', data.nombre_evento);
         setValue('lugar', data.lugar);
+        setValue('tema', data.tema);
         setValue('slogan', data.slogan);
         setValue('fondo_portada', data.fondo_portada);
         setValue('google_maps_link', data.google_maps_link);
@@ -43,6 +44,7 @@ export default function EventForm() {
         .update({
           nombre_evento: formData.nombre_evento,
           lugar: formData.lugar,
+          tema: formData.tema,
           slogan: formData.slogan,
           fecha_evento: new Date(formData.fecha_evento).toISOString(),
           fondo_portada: formData.fondo_portada,
@@ -95,6 +97,16 @@ export default function EventForm() {
                     className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
                     />
                 </div>
+              </div>
+
+              {/* --- NUEVO: TEMA DEL EVENTO (Fila 2) --- */}
+              <div className="md:col-span-12">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Tema Principal (Línea Media)</label>
+                <input
+                  {...register("tema")}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm font-medium text-blue-600"
+                  placeholder="Ej: INCONTENIBLES"
+                />
               </div>
 
               {/* Slogan (Full width) */}

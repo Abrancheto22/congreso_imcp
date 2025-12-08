@@ -1,33 +1,41 @@
 import Link from 'next/link';
 
 export default function Navbar() {
+  // Definimos el estilo de la línea animada para no repetirlo
+  const underlineClass = "absolute left-0 -bottom-1 w-0 h-0.5 bg-yellow-400 transition-all duration-300 group-hover:w-full";
+
   return (
-    <nav className="absolute top-0 left-0 w-full z-20 px-6 py-6 flex justify-between items-center text-white">
+    <nav className="absolute top-0 left-0 w-full z-20 px-8 py-8 flex justify-between items-center text-white">
       
-      {/* 1. Logo que manda al inicio */}
+      {/* 1. Logo (Más grande y llamativo) */}
       <Link 
         href="/" 
-        className="flex items-center gap-2 font-bold text-xl hover:text-gray-200 transition"
+        className="flex items-center gap-3 font-bold text-1xl hover:text-gray-200 transition"
       >
-        <span>✝</span> 
+        <span className="text-3xl">✝</span> 
         <span>Iglesia Principe de Paz</span>
       </Link>
 
-      {/* Enlaces del Menú */}
-      {/* Nota: Usamos '/#id' para que funcionen incluso si estás en otra página */}
-      <div className="hidden md:flex gap-8 text-sm font-medium">
-        <Link href="/#invitados" className="hover:text-yellow-400 transition">Ponentes</Link>
-        <Link href="/#ubicacion" className="hover:text-yellow-400 transition">Ubicación</Link>
-        <Link href="/#pago" className="hover:text-yellow-400 transition">Metodos</Link>
-      </div>
+      {/* 2. Enlaces (A la derecha, más grandes y con animación) */}
+      {/* justify-between en el padre empuja este div a la derecha automáticamente */}
+      <div className="hidden md:flex gap-10 text-sl font-medium">
+        
+        <Link href="/#invitados" className="relative group">
+          Ponentes
+          <span className={underlineClass}></span>
+        </Link>
 
-      {/* 2. Botón que manda al formulario de registro */}
-      <Link
-        href="/registro"
-        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-full font-semibold text-sm transition shadow-lg transform hover:scale-105"
-      >
-        Regístrate Ahora
-      </Link>
+        <Link href="/#ubicacion" className="relative group">
+          Ubicación
+          <span className={underlineClass}></span>
+        </Link>
+
+        <Link href="/#pago" className="relative group">
+          Métodos de Pago
+          <span className={underlineClass}></span>
+        </Link>
+
+      </div>
     </nav>
   );
 }
