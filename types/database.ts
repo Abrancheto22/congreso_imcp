@@ -30,6 +30,7 @@ export interface DatosGenerales {
   fondo_portada: string | null;
   google_maps_link: string | null;
   iframe_mapa: string | null;
+  galeria_imagenes: string[] | null;
 }
 
 export interface Pago {

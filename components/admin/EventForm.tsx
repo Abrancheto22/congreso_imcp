@@ -3,12 +3,16 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { supabase } from '@/lib/supabase';
-import { Loader2, Save, MapPin, Image as ImageIcon, Type, Calendar } from 'lucide-react';
+import { Loader2, Save, MapPin, Image as ImageIcon, Type, Calendar, X, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function EventForm() {
   const [loading, setLoading] = useState(false);
   const [recordId, setRecordId] = useState<string | null>(null);
+  
+  // Estado local para manejar la galería visualmente antes de guardar
+  const [galleryUrls, setGalleryUrls] = useState<string[]>([]);
+  const [uploadingGallery, setUploadingGallery] = useState(false);
   
   const { register, handleSubmit, setValue, watch } = useForm();
   const previewValues = watch();
@@ -19,12 +23,15 @@ export default function EventForm() {
       if (data) {
         setRecordId(data.id);
         setValue('nombre_evento', data.nombre_evento);
-        setValue('lugar', data.lugar);
         setValue('tema', data.tema);
+        setValue('lugar', data.lugar);
         setValue('slogan', data.slogan);
         setValue('fondo_portada', data.fondo_portada);
         setValue('google_maps_link', data.google_maps_link);
         setValue('iframe_mapa', data.iframe_mapa);
+        
+        // Cargar galería existente
+        if (data.galeria_imagenes) setGalleryUrls(data.galeria_imagenes);
         
         const date = new Date(data.fecha_evento);
         date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
@@ -33,6 +40,38 @@ export default function EventForm() {
     };
     fetchDatos();
   }, [setValue]);
+
+  // Función para subir fotos a la galería
+  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    setUploadingGallery(true);
+
+    try {
+        const newUrls: string[] = [];
+        for (const file of Array.from(e.target.files)) {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `galeria-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+            
+            const { error: uploadError } = await supabase.storage.from('congreso').upload(fileName, file);
+            if (uploadError) throw uploadError;
+
+            const { data } = supabase.storage.from('congreso').getPublicUrl(fileName);
+            newUrls.push(data.publicUrl);
+        }
+        // Agregamos las nuevas a las que ya existían
+        setGalleryUrls(prev => [...prev, ...newUrls]);
+        toast.success(`${newUrls.length} imágenes subidas`);
+    } catch (error) {
+        toast.error("Error subiendo imágenes");
+    } finally {
+        setUploadingGallery(false);
+    }
+  };
+
+  // Función para quitar una foto de la lista (visual)
+  const removeImage = (indexToRemove: number) => {
+    setGalleryUrls(prev => prev.filter((_, idx) => idx !== indexToRemove));
+  };
 
   const onSubmit = async (formData: any) => {
     setLoading(true);
@@ -43,13 +82,14 @@ export default function EventForm() {
         .from('datos_generales')
         .update({
           nombre_evento: formData.nombre_evento,
-          lugar: formData.lugar,
           tema: formData.tema,
+          lugar: formData.lugar,
           slogan: formData.slogan,
           fecha_evento: new Date(formData.fecha_evento).toISOString(),
           fondo_portada: formData.fondo_portada,
           google_maps_link: formData.google_maps_link,
-          iframe_mapa: formData.iframe_mapa
+          iframe_mapa: formData.iframe_mapa,
+          galeria_imagenes: galleryUrls // <--- Guardamos el array actualizado
         })
         .eq('id', recordId);
 
@@ -63,166 +103,141 @@ export default function EventForm() {
   };
 
   return (
-    <div className="flex flex-col xl:flex-row gap-8 items-start">
+    <div className="flex flex-col xl:flex-row gap-8 items-start pb-20">
       
-      {/* --- FORMULARIO COMPACTO (Izquierda) --- */}
-      <div className="w-full xl:w-2/3 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      {/* --- FORMULARIO PRINCIPAL --- */}
+      <div className="w-full xl:w-2/3 space-y-6">
         <form onSubmit={handleSubmit(onSubmit)}>
           
-          {/* 1. SECCIÓN INFORMACIÓN BÁSICA */}
-          <div className="p-6 border-b border-gray-100">
-            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-              <Type className="w-4 h-4" /> Detalles del Evento
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
-              
-              {/* Nombre (Ocupa 8 columnas) */}
-              <div className="md:col-span-8">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del Evento</label>
-                <input
-                  {...register("nombre_evento", { required: true })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm font-semibold"
-                  placeholder="Ej: Conferencia 2025"
-                />
+          {/* GRUPO 1: DATOS GENERALES */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="p-4 bg-gray-50 border-b border-gray-100 flex items-center gap-2">
+                <Type className="w-4 h-4 text-blue-600" />
+                <h3 className="text-sm font-bold text-gray-700 uppercase">Información Principal</h3>
+            </div>
+            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="md:col-span-2">
+                <label className="block text-xs font-bold text-gray-500 mb-1 uppercase">Nombre del Evento</label>
+                <input {...register("nombre_evento")} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500 font-bold text-lg" />
               </div>
-
-              {/* Fecha (Ocupa 4 columnas) */}
-              <div className="md:col-span-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Fecha y Hora</label>
-                <div className="relative">
-                    <Calendar className="absolute left-3 top-2.5 w-4 h-4 text-gray-400 pointer-events-none" />
-                    <input
-                    type="datetime-local"
-                    {...register("fecha_evento", { required: true })}
-                    className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
-                    />
-                </div>
+              <div className="md:col-span-1">
+                <label className="block text-xs font-bold text-gray-500 mb-1 uppercase">Tema (Subtítulo)</label>
+                <input {...register("tema")} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-blue-600 font-medium" />
               </div>
-
-              {/* --- NUEVO: TEMA DEL EVENTO (Fila 2) --- */}
-              <div className="md:col-span-12">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Tema Principal (Línea Media)</label>
-                <input
-                  {...register("tema")}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm font-medium text-blue-600"
-                  placeholder="Ej: INCONTENIBLES"
-                />
+              <div className="md:col-span-1">
+                <label className="block text-xs font-bold text-gray-500 mb-1 uppercase">Fecha y Hora</label>
+                <input type="datetime-local" {...register("fecha_evento")} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
-
-              {/* Slogan (Full width) */}
-              <div className="md:col-span-12">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Slogan / Subtítulo</label>
-                <input
-                  {...register("slogan")}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
-                  placeholder="Una frase inspiradora..."
-                />
+              <div className="md:col-span-2">
+                <label className="block text-xs font-bold text-gray-500 mb-1 uppercase">Slogan / Descripción</label>
+                <textarea {...register("slogan")} rows={2} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
               </div>
             </div>
           </div>
 
-          {/* 2. SECCIÓN APARIENCIA & UBICACIÓN */}
-          <div className="p-6 bg-gray-50/50">
-            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-              <MapPin className="w-4 h-4" /> Ubicación y Multimedia
-            </h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-                {/* Lugar Texto */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Lugar (Nombre)</label>
-                    <input
-                        {...register("lugar")}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
-                    />
-                </div>
-                {/* Fondo URL */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Imagen de Fondo (URL)</label>
-                    <div className="relative">
-                        <ImageIcon className="absolute left-3 top-2.5 w-4 h-4 text-gray-400 pointer-events-none" />
-                        <input
-                            {...register("fondo_portada")}
-                            className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-xs font-mono text-gray-600 truncate"
-                            placeholder="https://..."
-                        />
+          {/* GRUPO 2: PORTADA (HERO) */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mt-6">
+            <div className="p-4 bg-gray-50 border-b border-gray-100 flex items-center gap-2">
+                <ImageIcon className="w-4 h-4 text-purple-600" />
+                <h3 className="text-sm font-bold text-gray-700 uppercase">Portada Principal</h3>
+            </div>
+            <div className="p-6">
+                <label className="block text-xs font-bold text-gray-500 mb-1 uppercase">URL Imagen de Fondo (Hero)</label>
+                <input {...register("fondo_portada")} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-purple-500 font-mono text-sm text-gray-600" placeholder="https://..." />
+            </div>
+          </div>
+
+          {/* GRUPO 3: UBICACIÓN Y GALERÍA */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mt-6">
+            <div className="p-4 bg-gray-50 border-b border-gray-100 flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-red-600" />
+                <h3 className="text-sm font-bold text-gray-700 uppercase">Ubicación y Galería</h3>
+            </div>
+            <div className="p-6 space-y-6">
+                
+                {/* Datos Mapa */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div className="md:col-span-2">
+                        <label className="block text-xs font-bold text-gray-500 mb-1 uppercase">Lugar (Nombre)</label>
+                        <input {...register("lugar")} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-red-500" />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold text-gray-500 mb-1 uppercase">Link Google Maps (Botón)</label>
+                        <input {...register("google_maps_link")} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-red-500 text-xs" />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold text-gray-500 mb-1 uppercase">Iframe Embed (Mapa Visual)</label>
+                        <input {...register("iframe_mapa")} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-red-500 text-xs font-mono" placeholder="<iframe...>" />
                     </div>
                 </div>
-            </div>
 
-            {/* Inputs de Mapa */}
-            <div className="space-y-4">
+                <hr className="border-gray-100" />
+
+                {/* GESTOR DE GALERÍA */}
                 <div>
-                    <label className="text-xs text-gray-500 font-medium">Link Google Maps (Botón)</label>
-                    <input
-                        {...register("google_maps_link")}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-xs text-blue-600"
-                        placeholder="https://maps.google.com/..."
-                    />
+                    <label className="block text-xs font-bold text-gray-500 mb-3 uppercase">Galería de Fotos (Lugar)</label>
+                    
+                    {/* Botón Subir */}
+                    <div className="relative border-2 border-dashed border-gray-300 bg-gray-50 rounded-xl p-6 text-center hover:bg-gray-100 transition cursor-pointer mb-4">
+                        <input type="file" multiple accept="image/*" onChange={handleGalleryUpload} className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" />
+                        <div className="flex flex-col items-center gap-2 pointer-events-none">
+                            {uploadingGallery ? <Loader2 className="animate-spin text-blue-600" /> : <Upload className="text-gray-400" />}
+                            <span className="text-sm font-medium text-gray-600">{uploadingGallery ? "Subiendo..." : "Click para agregar fotos"}</span>
+                        </div>
+                    </div>
+
+                    {/* Grid de Miniaturas */}
+                    {galleryUrls.length > 0 && (
+                        <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
+                            {galleryUrls.map((url, idx) => (
+                                <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 group">
+                                    <img src={url} className="w-full h-full object-cover" alt="galeria" />
+                                    <button 
+                                        type="button"
+                                        onClick={() => removeImage(idx)}
+                                        className="absolute top-1 right-1 bg-red-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition hover:bg-red-700"
+                                    >
+                                        <X className="w-3 h-3" />
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
-                <div>
-                    <label className="text-xs text-gray-500 font-medium">Iframe Embed (Mapa Visual)</label>
-                    <textarea
-                        {...register("iframe_mapa")}
-                        rows={3}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-[10px] font-mono text-gray-600 leading-tight"
-                        placeholder='<iframe src="..."></iframe>'
-                    />
-                </div>
+
             </div>
           </div>
 
-          {/* FOOTER BOTÓN */}
-          <div className="p-4 bg-gray-100 border-t border-gray-200 flex justify-end">
+          {/* BOTÓN FLOTANTE DE GUARDAR */}
+          <div className="fixed bottom-6 right-6 z-50">
             <button
                 type="submit"
-                disabled={loading}
-                className="bg-blue-900 hover:bg-blue-800 text-white font-bold py-2.5 px-6 rounded-lg transition shadow-md flex items-center gap-2 text-sm"
+                disabled={loading || uploadingGallery}
+                className="bg-gray-900 hover:bg-black text-white font-bold py-4 px-8 rounded-full shadow-2xl flex items-center gap-3 transition transform hover:scale-105"
             >
-                {loading ? <Loader2 className="animate-spin w-4 h-4" /> : <Save className="w-4 h-4" />}
+                {loading ? <Loader2 className="animate-spin w-5 h-5" /> : <Save className="w-5 h-5" />}
                 Guardar Cambios
             </button>
           </div>
+
         </form>
       </div>
 
       {/* --- PREVIEW STICKY (Derecha) --- */}
-      <div className="w-full xl:w-1/3 xl:sticky xl:top-24 space-y-4">
-        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Vista Previa</h3>
-        
-        {/* Card simulando el Hero */}
-        <div className="relative w-full aspect-[4/5] md:aspect-video xl:aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl border-4 border-white bg-black">
+      <div className="hidden xl:block w-1/3 sticky top-24">
+        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider text-center mb-4">Vista Previa Portada</h3>
+        <div className="relative w-full aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl border-4 border-white bg-black group">
           <div 
-            className="absolute inset-0 bg-cover bg-center opacity-80"
+            className="absolute inset-0 bg-cover bg-center opacity-80 transition-all duration-700"
             style={{ backgroundImage: previewValues.fondo_portada ? `url(${previewValues.fondo_portada})` : 'none' }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/30" />
-
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-black/40" />
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
-            <h1 className="text-2xl font-bold text-white mb-2 drop-shadow-lg leading-tight">
-                {previewValues.nombre_evento || "Evento"}
-            </h1>
-            <p className="text-gray-200 text-xs line-clamp-3 mb-4 opacity-90">
-                {previewValues.slogan || "Slogan..."}
-            </p>
-            <div className="flex gap-1.5 opacity-90">
-                {[1,2,3,4].map(i => (
-                    <div key={i} className="w-8 h-10 bg-white/10 backdrop-blur-sm rounded flex flex-col items-center justify-center border border-white/20">
-                        <span className="text-white font-bold text-xs">00</span>
-                    </div>
-                ))}
-            </div>
-            <div className="mt-6">
-                <span className="bg-yellow-500 text-black text-[10px] font-bold px-4 py-2 rounded-full shadow-lg">
-                    Asegura tu lugar
-                </span>
-            </div>
+            <h1 className="text-2xl font-bold text-white mb-2 drop-shadow-lg leading-tight">{previewValues.nombre_evento || "Nombre Evento"}</h1>
+            {previewValues.tema && <h2 className="text-lg text-yellow-400 font-bold tracking-widest uppercase mb-4">{previewValues.tema}</h2>}
+            <p className="text-gray-300 text-xs line-clamp-3">{previewValues.slogan}</p>
           </div>
         </div>
-
-        <p className="text-[10px] text-gray-400 text-center px-4">
-            Esta es una representación aproximada. Revisa la página principal para ver el resultado final.
-        </p>
       </div>
 
     </div>
