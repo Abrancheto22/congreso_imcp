@@ -2,6 +2,7 @@ export interface Ponente {
   id: string;
   nombre: string;
   titulo: string;
+  descripcion: string | null;
   foto_url: string | null;
 }
 

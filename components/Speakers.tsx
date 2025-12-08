@@ -1,12 +1,38 @@
-import Link from 'next/link';
-import { Ponente } from '../types/database';
-import { User, ArrowRight } from 'lucide-react';
+'use client';
 
-export default function Speakers({ ponentes, totalCount }: { ponentes: Ponente[], totalCount: number }) {
+import { useCallback } from 'react';
+import useEmblaCarousel from 'embla-carousel-react';
+import Autoplay from 'embla-carousel-autoplay';
+import { Ponente } from '../types/database';
+import { User, ChevronLeft, ChevronRight } from 'lucide-react';
+
+export default function Speakers({ ponentes }: { ponentes: Ponente[] }) {
+  const [emblaRef, emblaApi] = useEmblaCarousel(
+    { 
+      loop: true, 
+      align: 'start',
+      dragFree: true,
+      containScroll: 'trimSnaps' 
+    }, 
+    [
+      Autoplay({ delay: 4000, stopOnInteraction: false, stopOnMouseEnter: true })
+    ]
+  );
+
+  const scrollPrev = useCallback(() => {
+    if (emblaApi) emblaApi.scrollPrev();
+  }, [emblaApi]);
+
+  const scrollNext = useCallback(() => {
+    if (emblaApi) emblaApi.scrollNext();
+  }, [emblaApi]);
+
+  const preventSelectionClass = "select-none";
+
   return (
-    <section id="invitados" className="py-20 bg-white">
-      <div className="max-w-6xl mx-auto px-4">
-        {/* Título */}
+    <section id="invitados" className="py-24 bg-white overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 relative">
+        
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
             Conoce a Nuestros Invitados
@@ -14,47 +40,80 @@ export default function Speakers({ ponentes, totalCount }: { ponentes: Ponente[]
           <div className="h-1 w-20 bg-yellow-500 mx-auto rounded-full"></div>
         </div>
 
-        {/* --- CORRECCIÓN AQUÍ --- */}
-        {/* Cambiamos 'grid' por 'flex flex-wrap justify-center'. 
-            Esto hace que las tarjetas se agrupen en el centro siempre. */}
-        <div className="flex flex-wrap justify-center gap-8 md:gap-12">
-          {ponentes.map((ponente) => (
-            // Añadimos 'w-full sm:w-64' para darles un ancho fijo base y que no se estiren raro
-            <div key={ponente.id} className="w-full sm:w-64 flex flex-col items-center text-center group">
+        <div className={`relative group px-4 md:px-12 ${preventSelectionClass}`}>
+          
+          <button 
+            onClick={scrollPrev}
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-20 bg-white shadow-lg border border-gray-100 text-gray-700 p-3 rounded-full hover:text-blue-600 hover:scale-110 transition hidden md:flex"
+            aria-label="Anterior"
+          >
+            <ChevronLeft className="w-6 h-6" />
+          </button>
+
+          <div className="overflow-hidden" ref={emblaRef}>
+            {/* Quitamos gap del contenedor padre */}
+            <div className="flex items-stretch"> 
               
-              {/* Foto con efecto Hover mejorado */}
-              <div className="relative w-44 h-44 mb-6 rounded-full overflow-hidden border-4 border-white shadow-lg group-hover:scale-110 group-hover:shadow-xl transition duration-300 ease-in-out bg-gray-100 cursor-pointer">
-                {ponente.foto_url ? (
-                  <img
-                    src={ponente.foto_url}
-                    alt={ponente.nombre}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400">
-                    <User className="w-20 h-20" />
+              {ponentes.map((ponente) => (
+                <div 
+                  key={ponente.id} 
+                  // AQUÍ ESTÁ LA SOLUCIÓN: Agregamos 'mr-6 md:mr-8' para separar las tarjetas
+                  className="flex-[0_0_auto] min-w-0 w-[280px] flex flex-col group/card py-4 h-auto mr-6 md:mr-8"
+                >
+                  <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 w-full h-full flex flex-col cursor-grab active:cursor-grabbing">
+                    
+                    <div className="flex-grow flex flex-col items-center text-center">
+                        <div className="relative w-40 h-40 mx-auto mb-6 rounded-full p-1 bg-gradient-to-tr from-gray-200 to-white shadow-inner flex-shrink-0">
+                        <div className="w-full h-full rounded-full overflow-hidden bg-gray-100 relative pointer-events-none">
+                            {ponente.foto_url ? (
+                            <img
+                                src={ponente.foto_url}
+                                alt={ponente.nombre}
+                                className="w-full h-full object-cover transition duration-500 group-hover/card:scale-110"
+                                draggable="false"
+                            />
+                            ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                <User className="w-16 h-16" />
+                            </div>
+                            )}
+                        </div>
+                        </div>
+                        
+                        <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2 h-[3.5rem] flex items-center justify-center">
+                            {ponente.nombre}
+                        </h3>
+                        <div className="h-1 w-10 bg-blue-500 rounded-full mx-auto mb-3 opacity-50 group-hover/card:w-20 transition-all duration-300 flex-shrink-0"></div>
+                    </div>
+                    
+                    <div className="text-center mt-auto">
+                        <p className="text-gray-900 font-medium">{ponente.titulo}</p>
+                        {ponente.descripcion && (
+                        <p className="text-sm text-gray-500 mt-2 italic line-clamp-3">
+                            {ponente.descripcion}
+                        </p>
+                        )}
+                    </div>
                   </div>
-                )}
-              </div>
-              
-              {/* Info */}
-              <h3 className="text-xl font-bold text-gray-900 mb-1">{ponente.nombre}</h3>
-              <p className="text-blue-600 font-medium">{ponente.titulo}</p>
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
+
+          <button 
+            onClick={scrollNext}
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-20 bg-white shadow-lg border border-gray-100 text-gray-700 p-3 rounded-full hover:text-blue-600 hover:scale-110 transition hidden md:flex"
+            aria-label="Siguiente"
+          >
+            <ChevronRight className="w-6 h-6" />
+          </button>
+
         </div>
 
-        {/* Botón Ver Todos */}
-        {totalCount > ponentes.length && (
-          <div className="mt-16 text-center animate-fade-in-up">
-            <Link 
-              href="/ponentes" 
-              className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-full transition transform hover:scale-105 shadow-md hover:shadow-lg"
-            >
-              Ver todos los ponentes <ArrowRight className="w-5 h-5" />
-            </Link>
-          </div>
-        )}
+        <p className={`text-center text-xs text-gray-400 mt-4 md:hidden flex items-center justify-center gap-2 ${preventSelectionClass}`}>
+            <ChevronLeft className="w-3 h-3" /> Desliza <ChevronRight className="w-3 h-3" />
+        </p>
+
       </div>
     </section>
   );

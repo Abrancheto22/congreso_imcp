@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { supabase } from '@/lib/supabase';
-import { useRouter, useParams } from 'next/navigation'; // useParams para leer el ID
+import { useRouter, useParams } from 'next/navigation';
 import AdminNavbar from '@/components/admin/AdminNavbar';
 import { Save, ArrowLeft, Loader2, User, Upload } from 'lucide-react';
 import Link from 'next/link';
@@ -14,7 +14,9 @@ export default function EditarPonentePage() {
   const [saving, setSaving] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   
-  // Obtenemos el ID de la URL (ej: /admin/ponentes/123-abc-456)
+  // SOLUCIÓN: Usamos un estado para guardar el archivo nuevo manualmente
+  const [newFile, setNewFile] = useState<File | null>(null);
+  
   const params = useParams(); 
   const router = useRouter();
   
@@ -40,7 +42,8 @@ export default function EditarPonentePage() {
       if (data) {
         setValue('nombre', data.nombre);
         setValue('titulo', data.titulo);
-        setPreviewUrl(data.foto_url); // Mostramos la foto actual
+        setValue('descripcion', data.descripcion); // <--- Campo Nuevo
+        setPreviewUrl(data.foto_url);
       }
       setLoading(false);
     };
@@ -48,31 +51,30 @@ export default function EditarPonentePage() {
     fetchPonente();
   }, [params.id, setValue, router]);
 
-  // Previsualización de nueva foto (si la cambia)
+  // Manejar cambio de foto
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setPreviewUrl(URL.createObjectURL(file));
-      setValue('foto', e.target.files);
+      setPreviewUrl(URL.createObjectURL(file)); // Previsualización
+      setNewFile(file); // Guardamos el archivo en el estado
     }
   };
 
   const onSubmit = async (data: any) => {
     setSaving(true);
     try {
-      let finalFotoUrl = previewUrl; // Por defecto mantenemos la foto que ya tenía
+      let finalFotoUrl = previewUrl; // Por defecto mantenemos la URL vieja
 
-      // 2. Si seleccionó una NUEVA foto, la subimos
-      const file = data.foto?.[0];
-      if (file) {
-        const fileExt = file.name.split('.').pop();
+      // 2. ¿Hay un archivo nuevo en el estado? Lo subimos.
+      if (newFile) {
+        const fileExt = newFile.name.split('.').pop();
         const fileName = `ponente-${Date.now()}.${fileExt}`;
         
         const { error: uploadError } = await supabase.storage
           .from('congreso')
-          .upload(fileName, file);
+          .upload(fileName, newFile);
 
-        if (uploadError) throw new Error('Error subiendo imagen');
+        if (uploadError) throw new Error('Error subiendo imagen: ' + uploadError.message);
 
         const { data: publicUrlData } = supabase.storage
           .from('congreso')
@@ -87,9 +89,10 @@ export default function EditarPonentePage() {
         .update({
           nombre: data.nombre,
           titulo: data.titulo,
+          descripcion: data.descripcion, // <--- Guardamos la descripción
           foto_url: finalFotoUrl
         })
-        .eq('id', params.id); // ¡Importante! Solo actualizamos este ID
+        .eq('id', params.id);
 
       if (updateError) throw updateError;
 
@@ -121,11 +124,11 @@ export default function EditarPonentePage() {
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             
-            {/* Foto Circular (Igual que en crear) */}
+            {/* Foto Circular */}
             <div className="flex flex-col items-center mb-6">
               <div className="relative w-32 h-32 rounded-full overflow-hidden border-2 border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100 transition cursor-pointer group">
                 {previewUrl ? (
-                  <img src={previewUrl} className="w-full h-full object-cover" />
+                  <img src={previewUrl} className="w-full h-full object-cover" alt="Previsualización" />
                 ) : (
                   <div className="flex flex-col items-center justify-center h-full text-gray-400">
                     <User className="w-8 h-8 mb-1" />
@@ -133,16 +136,15 @@ export default function EditarPonentePage() {
                   </div>
                 )}
                 
-                {/* Input invisible */}
+                {/* Input invisible (sin register, manejado manualmente) */}
                 <input 
                   type="file" 
                   accept="image/*"
-                  className="absolute inset-0 opacity-0 cursor-pointer"
+                  className="absolute inset-0 opacity-0 cursor-pointer z-10"
                   onChange={handleFileChange}
                 />
                 
-                {/* Overlay de "Cambiar" al pasar el mouse */}
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition z-0">
                     <Upload className="text-white w-6 h-6" />
                 </div>
               </div>
@@ -163,6 +165,15 @@ export default function EditarPonentePage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Título / Cargo</label>
                 <input
                   {...register("titulo", { required: "Requerido" })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+
+              {/* Nuevo Campo: Descripción */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Descripción / Info Extra</label>
+                <input
+                  {...register("descripcion")}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                 />
               </div>

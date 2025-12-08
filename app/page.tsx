@@ -5,8 +5,8 @@ import Speakers from '@/components/Speakers';
 import Location from '@/components/Location';
 import PaymentMethods from '@/components/PaymentMethods';
 
-// Regenera la página máximo 1 vez por minuto.
-export const revalidate = 60; // (Segundos)
+// Revalidación cada 60 segundos (ISR)
+export const revalidate = 60;
 
 export default async function Home() {
   // 1. Datos Generales
@@ -15,13 +15,12 @@ export default async function Home() {
     .select('*')
     .single();
 
-  // 2. Ponentes (MODIFICADO)
-  // Pedimos solo 3, pero usamos count: 'exact' para saber el total real
-  const { data: ponentes, count: totalPonentes } = await supabase
+  // 2. Ponentes (MODIFICADO: Sin límite)
+  // Quitamos .limit(3) para traer a TODOS los ponentes para el carrusel
+  const { data: ponentes } = await supabase
     .from('ponentes')
-    .select('*', { count: 'exact' })
-    .order('created_at', { ascending: true }) // Ordenados por antigüedad
-    .limit(3); // <-- LÍMITE: Solo trae los 3 primeros para la portada
+    .select('*')
+    .order('created_at', { ascending: true });
 
   // 3. Pagos
   const { data: pagos } = await supabase
@@ -35,9 +34,9 @@ export default async function Home() {
 
       {datosGenerales ? <Hero datos={datosGenerales} /> : null}
 
-      {/* Pasamos los ponentes y el TOTAL real al componente */}
+      {/* Pasamos los ponentes al componente (ya no necesitamos totalCount) */}
       {ponentes && ponentes.length > 0 && (
-        <Speakers ponentes={ponentes} totalCount={totalPonentes || 0} />
+        <Speakers ponentes={ponentes} />
       )}
 
       {datosGenerales && <Location datos={datosGenerales} />}

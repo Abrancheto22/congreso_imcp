@@ -55,7 +55,9 @@ export default function CrearPonentePage() {
           {
             nombre: data.nombre,
             titulo: data.titulo,
+            descripcion: data.descripcion,
             foto_url: finalFotoUrl
+            
           }
         ]);
 
@@ -129,6 +131,15 @@ export default function CrearPonentePage() {
                   {...register("titulo", { required: "El título es obligatorio" })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                   placeholder="Ej: Conferencista Internacional"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Descripción / Info Extra</label>
+                <input
+                  {...register("descripcion")}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  placeholder="Ej: Desde Argentina / Autor de 20 libros"
                 />
               </div>
             </div>

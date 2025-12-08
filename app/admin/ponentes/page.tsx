@@ -101,6 +101,7 @@ export default function AdminPonentesPage() {
                 <div className="flex-1">
                   <h3 className="font-bold text-gray-900">{ponente.nombre}</h3>
                   <p className="text-sm text-blue-600">{ponente.titulo}</p>
+                  <p className="text-sm text-blue-600">{ponente.descripcion}</p>
                 </div>
             </Link>
                 {/* Botón Eliminar (Abre el modal) */}
