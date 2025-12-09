@@ -5,7 +5,6 @@ import { useForm } from 'react-hook-form';
 import { supabase } from '@/lib/supabase';
 import { Upload, CheckCircle, Loader2, X, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
-// 1. IMPORTAR LA LIBRERÍA DE COMPRESIÓN
 import imageCompression from 'browser-image-compression';
 
 const DEPARTAMENTOS = [
@@ -19,7 +18,7 @@ export default function RegistrationForm() {
   const [uploading, setUploading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
-  const [compressing, setCompressing] = useState(false); // Nuevo estado visual
+  const [compressing, setCompressing] = useState(false);
   
   const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm();
 
@@ -51,53 +50,33 @@ export default function RegistrationForm() {
 
   const onSubmit = async (data: any) => {
     setUploading(true);
-    setCompressing(true); // Avisamos que estamos comprimiendo
-    
+    setCompressing(true);
     try {
       const fileList = data.comprobante;
       if (!fileList || fileList.length === 0) throw new Error("Debes subir al menos un comprobante.");
 
       const uploadedUrls: string[] = [];
-
-      // Opciones de compresión
-      const options = {
-        maxSizeMB: 0.8,          // Máximo 800KB aprox
-        maxWidthOrHeight: 1920,  // Redimensionar si es muy grande (Full HD)
-        useWebWorker: true,      // Usar proceso en segundo plano para no trabar el navegador
-        fileType: 'image/jpeg'   // Convertir todo a JPG (más ligero)
-      };
+      const options = { maxSizeMB: 0.8, maxWidthOrHeight: 1920, useWebWorker: true, fileType: 'image/jpeg' };
 
       for (const originalFile of Array.from(fileList as FileList)) {
-        
-        // 2. COMPRIMIR LA IMAGEN
         let fileToUpload = originalFile;
         try {
-            // Solo comprimimos si es imagen
             if (originalFile.type.startsWith('image/')) {
                 fileToUpload = await imageCompression(originalFile, options);
             }
-        } catch (error) {
-            console.warn("No se pudo comprimir, subiendo original...", error);
-        }
+        } catch (error) { console.warn("Error comprimiendo", error); }
 
-        // 3. SUBIR A SUPABASE
         const fileExt = fileToUpload.name.split('.').pop() || 'jpg';
         const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
 
-        const { error: uploadError } = await supabase.storage
-          .from('congreso')
-          .upload(fileName, fileToUpload);
-
+        const { error: uploadError } = await supabase.storage.from('congreso').upload(fileName, fileToUpload);
         if (uploadError) throw new Error(`Error al subir imagen`);
 
-        const { data: publicUrlData } = supabase.storage
-          .from('congreso')
-          .getPublicUrl(fileName);
-        
+        const { data: publicUrlData } = supabase.storage.from('congreso').getPublicUrl(fileName);
         uploadedUrls.push(publicUrlData.publicUrl);
       }
 
-      setCompressing(false); // Terminó compresión
+      setCompressing(false);
 
       const { error: insertError } = await supabase
         .from('registros')
@@ -106,6 +85,7 @@ export default function RegistrationForm() {
             nombre_completo: data.nombre,
             departamento: data.departamento,
             iglesia: data.iglesia,
+            genero: data.genero, // <--- CAMPO AGREGADO
             edad: parseInt(data.edad),
             numero: data.celular,
             voucher_url: uploadedUrls 
@@ -161,13 +141,15 @@ export default function RegistrationForm() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Iglesia de Procedencia</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Celular / WhatsApp</label>
           <input 
-            {...register("iglesia")} 
+            {...register("celular", { required: "Requerido" })} 
             className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition placeholder:text-gray-400" 
-            placeholder="Ej: Comunidad de Fe"
+            placeholder="987 654 321"
           />
         </div>
+        
+        {/* Departamento */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Departamento</label>
           <div className="relative">
@@ -185,15 +167,32 @@ export default function RegistrationForm() {
           {errors.departamento && <span className="text-red-500 text-xs mt-1">Selecciona tu región</span>}
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-5">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Celular / WhatsApp</label>
+
+      {/* FILA DE 3: Iglesia, Género, Edad */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div className="md:col-span-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Iglesia</label>
           <input 
-            {...register("celular", { required: "Requerido" })} 
+            {...register("iglesia")} 
             className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition placeholder:text-gray-400" 
-            placeholder="987 654 321"
+            placeholder="Ej: Comunidad de Fe"
           />
         </div>
+        
+        {/* NUEVO CAMPO GÉNERO */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Género</label>
+          <select 
+            {...register("genero", { required: "Requerido" })} 
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition bg-white text-gray-700 cursor-pointer"
+          >
+            <option value="">Seleccionar...</option>
+            <option value="Masculino">Masculino</option>
+            <option value="Femenino">Femenino</option>
+          </select>
+          {errors.genero && <span className="text-red-500 text-xs mt-1">Requerido</span>}
+        </div>
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Edad</label>
           <input 

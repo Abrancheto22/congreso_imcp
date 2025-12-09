@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Pago } from '@/types/database';
-import { Copy, CreditCard, Smartphone, QrCode, X, Check } from 'lucide-react';
+import { Copy, CreditCard, Smartphone, QrCode, X, Utensils, Bed, Bus, Info, Ticket } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function PaymentSidebar({ pagos }: { pagos: Pago[] }) {
@@ -10,78 +10,124 @@ export default function PaymentSidebar({ pagos }: { pagos: Pago[] }) {
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
-    toast.success("¡Número de cuenta copiado!");
+    toast.success("¡Copiado al portapapeles!");
   };
 
   return (
-    <div className="space-y-6">
-      <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100">
-        <h1 className="text-2xl font-bold text-blue-900 mb-2">¡Ya casi estás dentro!</h1>
-        <p className="text-blue-800 text-sm mb-4">
-            Sigue estos pasos para asegurar tu lugar:
-        </p>
-        <ol className="list-decimal list-inside space-y-2 text-blue-900 font-medium text-sm">
-            <li>Realiza el pago a una cuenta abajo.</li>
-            <li>Toma captura o foto al comprobante.</li>
-            <li>Llena el formulario y adjunta la foto.</li>
-        </ol>
+    <div className="space-y-5">
+      
+      {/* 1. TARJETA "TICKET" (Compacta) */}
+      <div className="bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-2xl shadow-md text-blue-900 overflow-hidden relative">
+        {/* Decoración de círculos */}
+        <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-4 h-4 bg-gray-50 rounded-full"></div>
+        <div className="absolute -right-2 top-1/2 -translate-y-1/2 w-4 h-4 bg-gray-50 rounded-full"></div>
+        
+        {/* Cabecera de Precio */}
+        <div className="p-4 text-center border-b border-blue-900/10 border-dashed relative">
+            <h2 className="font-bold uppercase tracking-wider text-[10px] mb-0.5 opacity-80 flex items-center justify-center gap-1.5">
+                <Ticket className="w-3.5 h-3.5" /> Valor de Inscripción
+            </h2>
+            <div className="flex items-center justify-center gap-0.5">
+                <span className="text-2xl font-bold">S/</span>
+                <span className="text-5xl font-black tracking-tighter">150</span>
+                <span className="text-lg font-bold self-start mt-1.5">.00</span>
+            </div>
+        </div>
+
+        {/* Lista de Beneficios */}
+        <div className="bg-white/90 backdrop-blur-sm p-4">
+            <p className="text-center text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-3">Tu entrada incluye:</p>
+            <ul className="space-y-2">
+                <li className="flex items-center gap-2.5 text-xs font-bold text-gray-700 bg-white p-2 rounded-lg shadow-sm border border-yellow-100/50">
+                    <div className="bg-orange-100 p-1.5 rounded-md text-orange-600 flex-shrink-0">
+                        <Utensils className="w-3.5 h-3.5" />
+                    </div>
+                    Alimentación Completa
+                </li>
+                <li className="flex items-center gap-2.5 text-xs font-bold text-gray-700 bg-white p-2 rounded-lg shadow-sm border border-yellow-100/50">
+                    <div className="bg-blue-100 p-1.5 rounded-md text-blue-600 flex-shrink-0">
+                        <Bed className="w-3.5 h-3.5" />
+                    </div>
+                    Estadía / Hospedaje
+                </li>
+                <li className="flex items-center gap-2.5 text-xs font-bold text-gray-700 bg-white p-2 rounded-lg shadow-sm border border-yellow-100/50">
+                    <div className="bg-green-100 p-1.5 rounded-md text-green-600 flex-shrink-0">
+                        <Bus className="w-3.5 h-3.5" />
+                    </div>
+                    Movilización Interna
+                </li>
+            </ul>
+        </div>
       </div>
 
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
-        <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <CreditCard className="w-5 h-5 text-gray-400" />
-            Cuentas Disponibles
-        </h3>
+      {/* 2. ZONA DE PAGO (INSTRUCCIONES + CUENTAS) */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
         
-        <div className="space-y-4">
+        {/* Cabecera Instrucciones */}
+        <div className="bg-gray-50 p-4 border-b border-gray-100 flex items-start gap-3">
+            <div className="bg-white p-1.5 rounded-md shadow-sm border border-gray-100 text-blue-600">
+                <Info className="w-4 h-4" />
+            </div>
+            <div>
+                <h3 className="text-sm font-bold text-gray-900 mb-0.5">Instrucciones</h3>
+                <p className="text-xs text-gray-500 leading-tight">
+                    1. Realiza el depósito.<br/>
+                    2. <strong>Toma captura</strong> al comprobante.<br/>
+                    3. Súbela en el formulario.
+                </p>
+            </div>
+        </div>
+
+        {/* Lista de Cuentas */}
+        <div className="p-4 space-y-3">
             {pagos.map((pago) => {
                 const isWallet = pago.nombre.toLowerCase().includes('yape') || pago.nombre.toLowerCase().includes('plin');
 
                 return (
-                    <div key={pago.id} className="group border border-gray-100 rounded-xl p-4 hover:border-blue-200 hover:bg-blue-50/30 transition duration-300">
-                        {/* Cabecera Banco */}
+                    <div key={pago.id} className="group border border-gray-100 rounded-xl p-3 hover:border-blue-300 hover:shadow-sm transition-all duration-200 bg-white">
                         <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2.5">
                                 <div className={`p-1.5 rounded-lg ${isWallet ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-600'}`}>
                                     {isWallet ? <Smartphone className="w-4 h-4" /> : <CreditCard className="w-4 h-4" />}
                                 </div>
-                                <span className="font-bold text-gray-800 text-sm">{pago.nombre}</span>
+                                <div>
+                                    <p className="font-bold text-gray-900 text-xs leading-none mb-0.5">{pago.nombre}</p>
+                                    <p className="text-[10px] text-gray-400 truncate max-w-[120px]">{pago.destinatario}</p>
+                                </div>
                             </div>
                             {pago.foto_url && (
                                 <button 
-                                    onClick={() => setQrOpen(pago.foto_url)}
-                                    className="text-[10px] font-bold uppercase bg-gray-100 hover:bg-gray-200 text-gray-600 px-2 py-1 rounded flex items-center gap-1 transition"
+                                    onClick={(e) => { e.stopPropagation(); setQrOpen(pago.foto_url); }}
+                                    className="text-[9px] font-bold bg-gray-50 hover:bg-gray-200 text-gray-600 px-2 py-1 rounded border border-gray-200 transition flex items-center gap-1"
                                 >
-                                    <QrCode className="w-3 h-3" /> Ver QR
+                                    <QrCode className="w-3 h-3" /> QR
                                 </button>
                             )}
                         </div>
                         
-                        {/* Titular */}
-                        <p className="text-xs text-gray-500 mb-2 pl-9">{pago.destinatario}</p>
-
-                        {/* Número con Copiar */}
-                        <div 
+                        <button 
                             onClick={() => handleCopy(pago.numero || '')}
-                            className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 cursor-pointer hover:border-blue-300 transition group/copy"
+                            className="w-full flex items-center justify-between bg-gray-50 group-hover:bg-blue-50/50 border border-transparent group-hover:border-blue-100 rounded-lg px-3 py-2 cursor-pointer transition"
                         >
-                            <span className="font-mono text-gray-800 font-medium tracking-wide text-sm truncate">
+                            <span className="font-mono text-gray-800 font-bold text-xs tracking-wide">
                                 {pago.numero}
                             </span>
-                            <Copy className="w-4 h-4 text-gray-400 group-hover/copy:text-blue-600 transition" />
-                        </div>
+                            <div className="flex items-center gap-1.5 text-[9px] text-gray-400 group-hover:text-blue-500 font-medium">
+                                COPIAR <Copy className="w-3 h-3" />
+                            </div>
+                        </button>
                     </div>
                 );
             })}
         </div>
       </div>
 
-      {/* MODAL QR (Pequeño y rápido) */}
+      {/* Modal QR */}
       {qrOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in" onClick={() => setQrOpen(null)}>
             <div className="bg-white p-2 rounded-xl max-w-xs w-full relative animate-in zoom-in-95" onClick={e => e.stopPropagation()}>
                 <button onClick={() => setQrOpen(null)} className="absolute -top-10 right-0 text-white"><X /></button>
-                <img src={qrOpen} className="w-full rounded-lg" />
+                <img src={qrOpen} className="w-full rounded-lg" alt="QR" />
                 <p className="text-center text-xs text-gray-500 mt-2 font-medium">Escanea para pagar</p>
             </div>
         </div>

@@ -4,6 +4,7 @@ import Hero from '@/components/Hero';
 import Speakers from '@/components/Speakers';
 import Location from '@/components/Location';
 import PaymentMethods from '@/components/PaymentMethods';
+import Footer from '@/components/Footer';
 
 // Revalidación cada 60 segundos (ISR)
 export const revalidate = 60;
@@ -41,6 +42,7 @@ export default async function Home() {
 
       {datosGenerales && <Location datos={datosGenerales} />}
       {pagos && pagos.length > 0 && <PaymentMethods pagos={pagos} />}
+      <Footer />
     </main>
   );
 }

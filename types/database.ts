@@ -10,6 +10,7 @@ export interface Registro {
   id: string;
   nombre_completo: string;
   iglesia: string;
+  genero: string | null;
   departamento: string;
   provincia: string | null;
   ciudad: string | null;
