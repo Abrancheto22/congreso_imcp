@@ -31,7 +31,7 @@ export default function Navbar() {
         </Link>
 
         <Link href="/#pago" className="relative group">
-          Métodos de Pago
+          Donaciones
           <span className={underlineClass}></span>
         </Link>
 
