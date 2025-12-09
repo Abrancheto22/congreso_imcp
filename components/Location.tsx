@@ -19,7 +19,7 @@ const LocationMap = memo(({ datos }: { datos: DatosGenerales }) => {
       
       {datos.iframe_mapa ? (
         <div 
-          className="w-full h-full [&>iframe]:w-full [&>iframe]:h-full [&>iframe]:border-0 grayscale group-hover:grayscale-0 transition duration-1000 ease-in-out"
+          className="w-full h-full [&>iframe]:w-full [&>iframe]:h-full [&>iframe]:border-0 group-hover:grayscale-0 transition duration-1000 ease-in-out"
           dangerouslySetInnerHTML={{ __html: datos.iframe_mapa }} 
         />
       ) : (

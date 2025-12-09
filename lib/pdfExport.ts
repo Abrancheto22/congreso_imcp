@@ -3,54 +3,60 @@ import autoTable from 'jspdf-autotable';
 import { Registro } from '@/types/database';
 
 export const exportToPdf = (data: Registro[], title: string = 'Lista de Inscritos') => {
-  const doc = new jsPDF();
+  // 1. Configurar orientación HORIZONTAL (Landscape)
+  const doc = new jsPDF({ orientation: 'landscape' });
 
-  // 1. Título del Documento
+  // Título
   doc.setFontSize(18);
   doc.text(title, 14, 22);
   doc.setFontSize(11);
   doc.setTextColor(100);
   doc.text(`Fecha de reporte: ${new Date().toLocaleDateString('es-PE')}`, 14, 30);
 
-  // 2. Definir las columnas
-  const tableColumn = ["Fecha", "Nombre", "Celular", "Estado", "Ubicación", "Iglesia", "Edad"];
+  // Definir columnas (Incluyendo las nuevas vacías)
+  const tableColumn = ["Nombre Completo", "Celular", "Dpto", "Iglesia", "Edad", "¿Crist?", "¿Baut?"];
 
-  // 3. Mapear los datos (Filas)
+  // Mapear datos
   const tableRows = data.map(reg => {
-    const fecha = new Date(reg.created_at).toLocaleDateString('es-PE');
-    // Combinamos ubicación para ahorrar espacio
-    const ubicacion = `${reg.departamento}\n${reg.ciudad || ''}`;
-    
     return [
-      fecha,
       reg.nombre_completo,
       reg.numero,
-      reg.estado || 'Pendiente',
-      ubicacion,
+      reg.departamento,
       reg.iglesia,
-      reg.edad
+      reg.edad,
+      '', // Vacío para marcar manual
+      ''  // Vacío para marcar manual
     ];
   });
 
-  // 4. Generar la tabla
+  // Generar tabla
   autoTable(doc, {
     head: [tableColumn],
     body: tableRows,
     startY: 40,
     theme: 'grid',
-    headStyles: { fillColor: [22, 163, 74] }, // Color verde (puedes cambiarlo a [41, 37, 36] para gris oscuro)
-    styles: { fontSize: 8, cellPadding: 2 },
+    // 2. Color NARANJA para el encabezado
+    headStyles: { 
+      fillColor: [249, 115, 22], // Color Naranja Vibrante
+      textColor: 255, 
+      fontStyle: 'bold' 
+    },
+    styles: { 
+      fontSize: 10, // Aumenté un poco la letra ya que hay más espacio horizontal
+      cellPadding: 4, 
+      valign: 'middle' 
+    },
+    // Ajustamos los anchos para aprovechar la hoja horizontal
     columnStyles: {
-      0: { cellWidth: 20 }, // Fecha
-      1: { cellWidth: 40 }, // Nombre
-      2: { cellWidth: 25 }, // Celular
-      3: { cellWidth: 20 }, // Estado
-      4: { cellWidth: 30 }, // Ubicación
-      5: { cellWidth: 35 }, // Iglesia
-      6: { cellWidth: 10 }, // Edad
+      0: { cellWidth: 70 }, // Nombre (Más espacio)
+      1: { cellWidth: 35 }, // Celular
+      2: { cellWidth: 35 }, // Dpto
+      3: { cellWidth: 60 }, // Iglesia (Más espacio)
+      4: { cellWidth: 15 }, // Edad
+      5: { cellWidth: 25 }, // ¿Crist?
+      6: { cellWidth: 25 }, // ¿Baut?
     }
   });
 
-  // 5. Guardar archivo
   doc.save(`${title}_${new Date().toISOString().split('T')[0]}.pdf`);
 };

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { RefreshCw, Search, X, CheckCircle, Clock, Eye, Download, MessageCircle, MapPin, FileSpreadsheet, FileText } from 'lucide-react';
+import { RefreshCw, Search, X, CheckCircle, Clock, Eye, Download, MessageCircle, FileSpreadsheet, FileText, Filter, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
 import { exportToExcel } from '@/lib/export';
 import { exportToPdf } from '@/lib/pdfExport';
@@ -10,8 +10,14 @@ import { exportToPdf } from '@/lib/pdfExport';
 export default function RegistrationsTable() {
   const [registros, setRegistros] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
   
+  // Estados de Filtros
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('todos'); // 'todos' | 'Pendiente' | 'Confirmado'
+  
+  // Filtros Avanzados (Opcionales, recomendados)
+  const [iglesiaFilter, setIglesiaFilter] = useState(''); // Texto libre para iglesia
+
   const [selectedReg, setSelectedReg] = useState<any | null>(null);
   const [processing, setProcessing] = useState(false);
 
@@ -31,6 +37,15 @@ export default function RegistrationsTable() {
   useEffect(() => {
     fetchRegistros();
   }, []);
+
+  const enviarWhatsApp = (registro: any) => {
+    let numero = registro.numero.replace(/\D/g, '');
+    if (!numero.startsWith('51') && numero.length === 9) {
+      numero = '51' + numero;
+    }
+    const mensaje = `Hola *${registro.nombre_completo}*! 👋%0A%0AHemos recibido y validado tu pago correctamente. ✅%0A%0A*¡Tu registro para la Conferencia Fe y Comunidad está CONFIRMADO!* 🎉%0A%0ANos vemos en el evento. Guarda este mensaje como respaldo.`;
+    window.open(`https://wa.me/${numero}?text=${mensaje}`, '_blank');
+  };
 
   const handleConfirmar = async () => {
     if (!selectedReg) return;
@@ -58,62 +73,104 @@ export default function RegistrationsTable() {
     }
   };
 
+  // Lógica de Filtrado Múltiple
   const filteredRegistros = registros.filter((reg) => {
     const term = searchTerm.toLowerCase();
-    return (
+    
+    // 1. Filtro de Texto (Nombre, Ubicación)
+    const matchesSearch = 
       reg.nombre_completo.toLowerCase().includes(term) ||
-      (reg.departamento && reg.departamento.toLowerCase().includes(term)) ||
-      (reg.iglesia && reg.iglesia.toLowerCase().includes(term))
-    );
+      (reg.departamento && reg.departamento.toLowerCase().includes(term));
+
+    // 2. Filtro de Estado
+    const matchesStatus = 
+      statusFilter === 'todos' || 
+      (reg.estado || 'Pendiente') === statusFilter;
+
+    // 3. Filtro de Iglesia (si se escribió algo)
+    const matchesIglesia = 
+        iglesiaFilter === '' || 
+        (reg.iglesia && reg.iglesia.toLowerCase().includes(iglesiaFilter.toLowerCase()));
+
+    return matchesSearch && matchesStatus && matchesIglesia;
   });
 
   return (
     <>
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div className="p-6 border-b border-gray-200 flex flex-col md:flex-row justify-between items-center gap-4 bg-gray-50">
-          <div className="flex items-center gap-3">
-            <h2 className="text-xl font-bold text-gray-800">Inscripciones</h2>
-            <span className="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-0.5 rounded-full border border-blue-200">
-              {filteredRegistros.length}
-            </span>
-          </div>
+        
+        {/* Cabecera Principal */}
+        <div className="p-6 border-b border-gray-200 bg-gray-50 space-y-4">
+            
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div className="flex items-center gap-3">
+                    <h2 className="text-xl font-bold text-gray-800">Inscripciones</h2>
+                    <span className="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-0.5 rounded-full border border-blue-200">
+                    {filteredRegistros.length}
+                    </span>
+                </div>
 
-          <div className="flex items-center gap-2 w-full md:w-auto">
-            <div className="relative w-full md:w-64">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-4 w-4 text-gray-400" />
-              </div>
-              <input
-                type="text"
-                placeholder="Buscar..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-              />
+                <div className="flex items-center gap-2 w-full md:w-auto">
+                    {/* Botones Exportar */}
+                    <button onClick={() => exportToExcel(registros)} className="p-2 bg-green-100 text-green-700 hover:bg-green-200 rounded-lg transition" title="Excel">
+                        <FileSpreadsheet className="w-5 h-5" />
+                    </button>
+                    <button onClick={() => exportToPdf(registros, 'Reporte')} className="p-2 bg-red-100 text-red-700 hover:bg-red-200 rounded-lg transition" title="PDF">
+                        <FileText className="w-5 h-5" />
+                    </button>
+                    <button onClick={fetchRegistros} className="p-2 text-gray-500 hover:text-blue-600 bg-white border rounded-lg">
+                        <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+                    </button>
+                </div>
             </div>
 
-            <button 
-              onClick={() => exportToExcel(registros)}
-              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg transition shadow-sm text-sm font-medium whitespace-nowrap"
-              title="Descargar Excel"
-            >
-              <FileSpreadsheet className="w-4 h-4" /> <span className="hidden sm:inline">Excel</span>
-            </button>
+            {/* BARRA DE FILTROS */}
+            <div className="flex flex-col md:flex-row gap-3">
+                
+                {/* Buscador General */}
+                <div className="relative flex-1">
+                    <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                    <input
+                        type="text"
+                        placeholder="Buscar por nombre o departamento..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-9 pr-4 py-2 w-full border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                    />
+                </div>
 
-            <button 
-              onClick={() => exportToPdf(registros, 'Reporte Congreso')}
-              className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg transition shadow-sm text-sm font-medium whitespace-nowrap"
-              title="Descargar PDF"
-            >
-              <FileText className="w-4 h-4" /> <span className="hidden sm:inline">PDF</span>
-            </button>
+                {/* Filtro de Estado (Select) */}
+                <div className="relative w-full md:w-48">
+                    <select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                        className={`w-full pl-3 pr-8 py-2 border rounded-lg text-sm focus:ring-2 outline-none appearance-none cursor-pointer font-medium
+                            ${statusFilter === 'Confirmado' ? 'border-green-200 bg-green-50 text-green-700 focus:ring-green-500' : 
+                              statusFilter === 'Pendiente' ? 'border-yellow-200 bg-yellow-50 text-yellow-700 focus:ring-yellow-500' : 
+                              'border-gray-300 bg-white text-gray-700 focus:ring-blue-500'}`}
+                    >
+                        <option value="todos">Todos los Estados</option>
+                        <option value="Pendiente">⏳ Pendientes</option>
+                        <option value="Confirmado">✅ Confirmados</option>
+                    </select>
+                    <Filter className="absolute right-3 top-2.5 h-4 w-4 text-gray-400 pointer-events-none" />
+                </div>
 
-            <button onClick={fetchRegistros} className="p-2 text-gray-500 hover:text-blue-600 bg-white border rounded-lg">
-              <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
-            </button>
-          </div>
+                {/* Filtro de Iglesia (Extra) */}
+                <div className="relative w-full md:w-48">
+                    <input
+                        type="text"
+                        placeholder="Filtrar por Iglesia..."
+                        value={iglesiaFilter}
+                        onChange={(e) => setIglesiaFilter(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                    />
+                </div>
+
+            </div>
         </div>
 
+        {/* Tabla */}
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left text-gray-500">
             <thead className="text-xs text-gray-700 uppercase bg-gray-100/50 border-b border-gray-200">
@@ -121,7 +178,7 @@ export default function RegistrationsTable() {
                 <th className="px-6 py-4">Estado</th>
                 <th className="px-6 py-4">Fecha</th>
                 <th className="px-6 py-4">Nombre / WhatsApp</th>
-                <th className="px-6 py-4">Ubicación</th>
+                <th className="px-6 py-4">Ubicación / Iglesia</th>
                 <th className="px-6 py-4 text-center">Acciones</th>
               </tr>
             </thead>
@@ -139,12 +196,14 @@ export default function RegistrationsTable() {
                       </span>
                     )}
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 whitespace-nowrap">
                     {new Date(reg.created_at).toLocaleDateString('es-PE', { day: '2-digit', month: 'short' })}
+                    <span className="text-xs text-gray-400 ml-1">{new Date(reg.created_at).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}</span>
                   </td>
                   <td className="px-6 py-4">
                     <p className="font-bold text-gray-900">{reg.nombre_completo}</p>
                     <button 
+                        onClick={() => enviarWhatsApp(reg)}
                         className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-green-600 mt-1 transition"
                     >
                         <MessageCircle className="w-3 h-3" /> {reg.numero}
@@ -153,7 +212,7 @@ export default function RegistrationsTable() {
                   <td className="px-6 py-4">
                     <div className="flex flex-col">
                         <span className="text-gray-900 font-medium">{reg.departamento}</span>
-                        <span className="text-xs text-gray-500">{reg.genero+" - "+reg.edad || '-' }</span>
+                        <span className="text-xs text-gray-500">{reg.iglesia}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-center">
@@ -166,6 +225,13 @@ export default function RegistrationsTable() {
                   </td>
                 </tr>
               ))}
+              {filteredRegistros.length === 0 && (
+                  <tr>
+                      <td colSpan={5} className="px-6 py-12 text-center text-gray-400">
+                          No se encontraron registros con esos filtros.
+                      </td>
+                  </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -188,7 +254,6 @@ export default function RegistrationsTable() {
 
             <div className="p-6 space-y-8">
               
-              {/* Sección Datos */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="text-xs font-bold text-gray-500 uppercase">Nombre Completo</label>
@@ -208,6 +273,13 @@ export default function RegistrationsTable() {
                   <label className="text-xs font-bold text-gray-500 uppercase">Celular / WhatsApp</label>
                   <div className="flex items-center gap-2 mt-1">
                     <p className="text-gray-900 text-lg">{selectedReg.numero}</p>
+                    <button 
+                        onClick={() => enviarWhatsApp(selectedReg)}
+                        className="bg-green-100 hover:bg-green-200 text-green-700 p-2 rounded-full transition"
+                        title="Abrir Chat"
+                    >
+                        <MessageCircle className="w-5 h-5" />
+                    </button>
                   </div>
                 </div>
                 <div>
@@ -216,13 +288,13 @@ export default function RegistrationsTable() {
                     <MapPin className="w-4 h-4 text-blue-500" />
                     <p className="text-gray-900 font-medium">{selectedReg.departamento}</p>
                   </div>
+                  <p className="text-sm text-gray-500 pl-5">{selectedReg.ciudad || ''} {selectedReg.provincia ? `(${selectedReg.provincia})` : ''}</p>
                 </div>
                 <div>
                   <label className="text-xs font-bold text-gray-500 uppercase">Iglesia</label>
                   <p className="text-gray-900">{selectedReg.iglesia || '-'}</p>
                 </div>
                 
-                {/* --- AQUÍ AGREGAMOS LOS CAMPOS DE EDAD Y GÉNERO --- */}
                 <div className="flex gap-8">
                     <div>
                         <label className="text-xs font-bold text-gray-500 uppercase">Edad</label>
