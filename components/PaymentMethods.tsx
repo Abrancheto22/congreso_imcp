@@ -25,13 +25,13 @@ export default function PaymentMethods({ pagos }: { pagos: Pago[] }) {
                 {/* LADO IZQUIERDO: IMAGEN (Ocupa toda la altura) */}
                 <div className="lg:col-span-5 relative min-h-[300px] lg:h-full group">
                     <img 
-                        src="https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?auto=format&fit=crop&q=80&w=800" 
+                        src="https://images.pexels.com/photos/1072824/pexels-photo-1072824.jpeg" 
                         alt="Fondo Donaciones" 
-                        className="absolute inset-0 w-full h-full object-cover transition duration-1000 group-hover:scale-110"
+                        className="absolute inset-0 w-full h-full object-cover transition duration-1000"
                     />
                     
                     {/* Overlay Degradado y Texto */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-blue-900/90 via-blue-900/40 to-transparent flex flex-col justify-end p-10 text-white">
+                    <div className="absolute inset-0 bg-gradient-to-t from-orange-700/60 via-orange-800/30 to-transparent flex flex-col justify-end p-10 text-white">
                         <div className="bg-yellow-500 w-12 h-12 rounded-full flex items-center justify-center mb-4 shadow-lg animate-bounce-slow">
                             <Heart className="w-6 h-6 text-black fill-black" />
                         </div>
@@ -101,24 +101,6 @@ export default function PaymentMethods({ pagos }: { pagos: Pago[] }) {
                         })}
                     </div>
 
-                    {/* Footer Interno (Contacto) */}
-                    <div className="mt-auto border-t border-gray-100 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <div className="text-center sm:text-left">
-                            <p className="text-xs font-bold text-gray-900">¿Tienes dudas?</p>
-                            <p className="text-[10px] text-gray-400">Contáctanos por redes sociales.</p>
-                        </div>
-                        <div className="flex gap-2">
-                            <a href="#" className="w-9 h-9 rounded-full bg-gray-50 hover:bg-blue-600 hover:text-white flex items-center justify-center text-gray-400 transition">
-                                <Facebook className="w-4 h-4" />
-                            </a>
-                            <a href="#" className="w-9 h-9 rounded-full bg-gray-50 hover:bg-pink-600 hover:text-white flex items-center justify-center text-gray-400 transition">
-                                <Instagram className="w-4 h-4" />
-                            </a>
-                            <a href="#" className="w-9 h-9 rounded-full bg-gray-50 hover:bg-green-600 hover:text-white flex items-center justify-center text-gray-400 transition">
-                                <MessageCircle className="w-4 h-4" />
-                            </a>
-                        </div>
-                    </div>
 
                 </div>
             </div>

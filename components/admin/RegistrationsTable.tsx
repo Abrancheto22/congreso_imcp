@@ -38,14 +38,6 @@ export default function RegistrationsTable() {
     fetchRegistros();
   }, []);
 
-  const enviarWhatsApp = (registro: any) => {
-    let numero = registro.numero.replace(/\D/g, '');
-    if (!numero.startsWith('51') && numero.length === 9) {
-      numero = '51' + numero;
-    }
-    const mensaje = `Hola *${registro.nombre_completo}*! 👋%0A%0AHemos recibido y validado tu pago correctamente. ✅%0A%0A*¡Tu registro para la Conferencia Fe y Comunidad está CONFIRMADO!* 🎉%0A%0ANos vemos en el evento. Guarda este mensaje como respaldo.`;
-    window.open(`https://wa.me/${numero}?text=${mensaje}`, '_blank');
-  };
 
   const handleConfirmar = async () => {
     if (!selectedReg) return;
@@ -203,7 +195,6 @@ export default function RegistrationsTable() {
                   <td className="px-6 py-4">
                     <p className="font-bold text-gray-900">{reg.nombre_completo}</p>
                     <button 
-                        onClick={() => enviarWhatsApp(reg)}
                         className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-green-600 mt-1 transition"
                     >
                         <MessageCircle className="w-3 h-3" /> {reg.numero}
@@ -274,7 +265,6 @@ export default function RegistrationsTable() {
                   <div className="flex items-center gap-2 mt-1">
                     <p className="text-gray-900 text-lg">{selectedReg.numero}</p>
                     <button 
-                        onClick={() => enviarWhatsApp(selectedReg)}
                         className="bg-green-100 hover:bg-green-200 text-green-700 p-2 rounded-full transition"
                         title="Abrir Chat"
                     >

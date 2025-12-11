@@ -30,7 +30,6 @@ export default function Hero({ datos }: { datos: DatosGenerales }) {
   if (!datos) return null;
 
   return (
-    // CAMBIO CLAVE: Padding progresivo (pt-32 -> md:pt-40 -> lg:pt-48)
     // Esto asegura que en laptops pequeñas el contenido no se vaya muy abajo.
     <div className="relative min-h-screen w-full flex items-start justify-center overflow-hidden pt-32 md:pt-40 lg:pt-48 pb-10">
       
@@ -39,13 +38,16 @@ export default function Hero({ datos }: { datos: DatosGenerales }) {
         className="absolute inset-0 z-0 bg-cover bg-center animate-ken-burns"
         style={{ backgroundImage: `url(${datos.fondo_portada})` }}
       >
-        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/10 to-black/50" />
+        {/* Manejar el gradiante del fondo*/}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/60" />
       </div>
 
       {/* 2. Contenido */}
       <div className="relative z-10 text-center px-4 w-full max-w-5xl mx-auto flex flex-col items-center">
         
         {/* Título / Imagen */}
+        
+
         {datos.titulo_imagen_url ? (
             // CAMBIO: Anchos máximos progresivos para que la imagen no sea gigante en tablets
             <div className="w-full max-w-[85%] sm:max-w-[80%] md:max-w-3xl lg:max-w-4xl animate-fade-in-up mb-4 md:mb-6">
@@ -54,6 +56,9 @@ export default function Hero({ datos }: { datos: DatosGenerales }) {
                     alt={datos.nombre_evento} 
                     className="w-full h-auto object-contain drop-shadow-2xl mx-auto" 
                 />
+                <p className="text-sm sm:text-base md:text-xl text-gray-300 mt-4 md:mt-6 max-w-2xl mx-auto font-bold leading-relaxed px-4">
+                    {datos.slogan}
+                </p>
             </div>
         ) : (
             <div className="animate-fade-in-up mb-6 md:mb-8 mt-2 md:mt-6">
@@ -68,7 +73,7 @@ export default function Hero({ datos }: { datos: DatosGenerales }) {
                     </h2>
                 )}
 
-                <p className="text-sm sm:text-base md:text-xl text-gray-300 mt-4 md:mt-6 max-w-2xl mx-auto font-light leading-relaxed px-4">
+                <p className="text-sm sm:text-base md:text-xl text-gray-300 mt-4 md:mt-6 max-w-2xl mx-auto font-bold leading-relaxed px-4">
                     {datos.slogan}
                 </p>
             </div>

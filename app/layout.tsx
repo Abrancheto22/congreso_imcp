@@ -7,7 +7,7 @@ import { Toaster } from 'sonner';
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Conferencia Fe y Comunidad",
+  title: "Congreso Juvenil Internacional 2026",
   description: "Landing page del evento",
 };
 
