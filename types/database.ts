@@ -32,6 +32,9 @@ export interface DatosGenerales {
   google_maps_link: string | null;
   iframe_mapa: string | null;
   galeria_imagenes: string[] | null;
+  titulo_imagen_url: string | null;
+  logo_navbar_url: string | null;
+  logo_footer_url: string | null;
 }
 
 export interface Pago {

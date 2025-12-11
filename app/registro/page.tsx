@@ -1,9 +1,9 @@
 import Navbar from '@/components/Navbar';
 import RegistrationForm from '@/components/RegistrationForm';
 import PaymentSidebar from '@/components/PaymentSidebar';
+import Footer from '@/components/Footer'; // 1. Importamos el Footer
 import { supabase } from '@/lib/supabase';
 
-// Forzamos que la página sea dinámica para que los pagos estén siempre frescos
 export const dynamic = 'force-dynamic';
 
 async function getPagos() {
@@ -11,41 +11,58 @@ async function getPagos() {
   return data || [];
 }
 
+async function getDatosGenerales() {
+  const { data } = await supabase.from('datos_generales').select('*').single();
+  return data;
+}
+
 export default async function RegistroPage() {
   const pagos = await getPagos();
+  const datos = await getDatosGenerales();
 
   return (
-    <main className="min-h-screen bg-gray-50 pb-24">
+    // CAMBIO: 'flex flex-col' para organizar verticalmente y quitar padding bottom (pb) del main
+    <main className="min-h-screen bg-gray-50 flex flex-col">
       
-      {/* 1. Header Oscuro Compacto */}
-      <div className="bg-gray-900 relative h-20 shadow-md z-20">
-        <Navbar />
+      {/* HEADER OSCURO */}
+      <div className="bg-gray-900 relative w-full min-h-[100px] shadow-md z-30 flex items-center justify-center flex-shrink-0">
+        <div className="w-full h-full">
+            <Navbar logoUrl={datos?.logo_navbar_url} />
+        </div>
       </div>
       
-      {/* Contenedor Principal (Más ancho y centrado) */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      {/* CONTENIDO PRINCIPAL (flex-grow hace que ocupe todo el espacio disponible) */}
+      <div className="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
         
-        {/* Título de la Página */}
-        <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Inscripción al Evento</h1>
-            <p className="text-gray-500 mt-1">Completa tus datos para asegurar tu participación.</p>
+        {/* Título */}
+        <div className="mb-6 lg:mb-8 text-center lg:text-left">
+            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 leading-tight">Inscripción al Evento</h1>
+            <p className="text-sm lg:text-base text-gray-500 mt-1">Completa tus datos para asegurar tu participación.</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+        {/* Grid de 2 Columnas */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12 items-start">
           
-          {/* COLUMNA IZQUIERDA: Sidebar "Sticky" 
-              (Se queda fija al hacer scroll) */}
-          <aside className="lg:col-span-5 lg:sticky lg:top-8 space-y-6">
+          <aside className="lg:col-span-5 lg:sticky lg:top-8 space-y-4 lg:space-y-6">
               <PaymentSidebar pagos={pagos} />
+              
+              <div className="bg-white border border-blue-100 rounded-xl p-3 flex items-center justify-center gap-2 text-xs text-blue-800 shadow-sm">
+                <span className="bg-blue-100 p-1 rounded-full">💡</span>
+                <p>¿Dudas? <span className="font-bold cursor-pointer underline">Contáctanos</span></p>
+              </div>
           </aside>
 
-          {/* COLUMNA DERECHA: Formulario */}
           <div className="lg:col-span-7">
               <RegistrationForm />
           </div>
 
         </div>
       </div>
+
+      {/* FOOTER AL FINAL */}
+      {/* Le pasamos el logo para que mantenga la identidad */}
+      <Footer logoUrl={datos?.logo_footer_url} />
+
     </main>
   );
 }

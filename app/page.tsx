@@ -10,6 +10,15 @@ import Footer from '@/components/Footer';
 export const revalidate = 60;
 
 export default async function Home() {
+  const datos = await getDatosGenerales();
+  async function getDatosGenerales() {
+  const { data } = await supabase
+    .from('datos_generales')
+    .select('*')
+    .single();
+  return data;
+}
+
   // 1. Datos Generales
   const { data: datosGenerales } = await supabase
     .from('datos_generales')
@@ -31,7 +40,7 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen bg-gray-50">
-      <Navbar />
+      <Navbar logoUrl={datos?.logo_navbar_url} />
 
       {datosGenerales ? <Hero datos={datosGenerales} /> : null}
 
@@ -42,7 +51,7 @@ export default async function Home() {
 
       {datosGenerales && <Location datos={datosGenerales} />}
       {pagos && pagos.length > 0 && <PaymentMethods pagos={pagos} />}
-      <Footer />
+      <Footer logoUrl={datos?.logo_footer_url} />
     </main>
   );
 }

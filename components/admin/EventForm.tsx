@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { supabase } from '@/lib/supabase';
-import { Loader2, Save, MapPin, Image as ImageIcon, Type, Calendar, X, Upload } from 'lucide-react';
+import { Loader2, Save, MapPin, Image as ImageIcon, Type, Calendar, X, Upload, Image} from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function EventForm() {
@@ -28,7 +28,10 @@ export default function EventForm() {
         setValue('slogan', data.slogan);
         setValue('fondo_portada', data.fondo_portada);
         setValue('google_maps_link', data.google_maps_link);
+        setValue('titulo_imagen_url', data.titulo_imagen_url);
         setValue('iframe_mapa', data.iframe_mapa);
+        setValue('logo_navbar_url', data.logo_navbar_url);
+        setValue('logo_footer_url', data.logo_footer_url);
         
         // Cargar galería existente
         if (data.galeria_imagenes) setGalleryUrls(data.galeria_imagenes);
@@ -89,7 +92,10 @@ export default function EventForm() {
           fondo_portada: formData.fondo_portada,
           google_maps_link: formData.google_maps_link,
           iframe_mapa: formData.iframe_mapa,
-          galeria_imagenes: galleryUrls // <--- Guardamos el array actualizado
+          galeria_imagenes: galleryUrls, // <--- Guardamos el array actualizado
+          titulo_imagen_url: formData.titulo_imagen_url,
+          logo_navbar_url: formData.logo_navbar_url,
+          logo_footer_url: formData.logo_footer_url
         })
         .eq('id', recordId);
 
@@ -135,15 +141,69 @@ export default function EventForm() {
             </div>
           </div>
 
-          {/* GRUPO 2: PORTADA (HERO) */}
+          {/* GRUPO 2: PORTADA Y TÍTULO (HERO) */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mt-6">
             <div className="p-4 bg-gray-50 border-b border-gray-100 flex items-center gap-2">
                 <ImageIcon className="w-4 h-4 text-purple-600" />
-                <h3 className="text-sm font-bold text-gray-700 uppercase">Portada Principal</h3>
+                <h3 className="text-sm font-bold text-gray-700 uppercase">Multimedia Portada</h3>
             </div>
-            <div className="p-6">
-                <label className="block text-xs font-bold text-gray-500 mb-1 uppercase">URL Imagen de Fondo (Hero)</label>
-                <input {...register("fondo_portada")} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-purple-500 font-mono text-sm text-gray-600" placeholder="https://..." />
+            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                {/* 1. Fondo (URL) */}
+                <div className="md:col-span-2">
+                    <label className="block text-xs font-bold text-gray-500 mb-1 uppercase">URL Imagen de Fondo (Wallpaper)</label>
+                    <input {...register("fondo_portada")} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-purple-500 font-mono text-sm text-gray-600" placeholder="https://..." />
+                </div>
+
+                <hr className="md:col-span-2 border-gray-100 my-2" />
+
+                {/* 2. Título como Imagen (PNG) */}
+                <div className="md:col-span-2">
+                    <label className="block text-xs font-bold text-gray-500 mb-3 uppercase">
+                        Imagen del Título (PNG Transparente)
+                        <span className="block text-[10px] text-gray-400 normal-case">Si subes esto, reemplazará al texto escrito del nombre del evento.</span>
+                    </label>
+                    
+                    {/* Input Visual para subir */}
+                    <div className="flex items-center gap-4">
+                        <div className="relative border-2 border-dashed border-gray-300 bg-gray-50 rounded-xl p-4 w-full text-center hover:bg-gray-100 transition cursor-pointer">
+                            <input 
+                                type="file" 
+                                accept="image/png, image/webp" 
+                                onChange={async (e) => {
+                                    if (!e.target.files || e.target.files.length === 0) return;
+                                    const file = e.target.files[0];
+                                    const fileName = `titulo-${Date.now()}.png`;
+                                    const { data } = await supabase.storage.from('congreso').upload(fileName, file);
+                                    if (data) {
+                                        const { data: publicUrl } = supabase.storage.from('congreso').getPublicUrl(fileName);
+                                        setValue('titulo_imagen_url', publicUrl.publicUrl); // Guardamos la URL
+                                        toast.success("Imagen de título subida");
+                                    }
+                                }} 
+                                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" 
+                            />
+                            <span className="text-sm text-gray-500 font-medium">Click para subir PNG</span>
+                        </div>
+
+                        {/* Previsualización pequeña */}
+                        {watch('titulo_imagen_url') && (
+                            <div className="w-32 h-20 bg-gray-800 rounded-lg border border-gray-600 flex items-center justify-center overflow-hidden relative group">
+                                <img src={watch('titulo_imagen_url')} className="max-w-full max-h-full object-contain" alt="preview" />
+                                <button 
+                                    type="button"
+                                    onClick={() => setValue('titulo_imagen_url', null)}
+                                    className="absolute top-1 right-1 bg-red-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition"
+                                >
+                                    <X className="w-3 h-3" />
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                    {/* Input oculto para registrar el valor en el form */}
+                    <input type="hidden" {...register("titulo_imagen_url")} />
+                </div>
+
             </div>
           </div>
 
@@ -203,6 +263,77 @@ export default function EventForm() {
                             ))}
                         </div>
                     )}
+                </div>
+
+            </div>
+          </div>
+
+          {/* GRUPO EXTRA: LOGOS */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mt-6">
+            <div className="p-4 bg-gray-50 border-b border-gray-100 flex items-center gap-2">
+                <Image className="w-4 h-4 text-purple-600" />
+                <h3 className="text-sm font-bold text-gray-700 uppercase">Logos del Sitio</h3>
+            </div>
+            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                {/* 1. Logo Navbar */}
+                <div>
+                    <label className="block text-xs font-bold text-gray-500 mb-2 uppercase">Logo Menú Superior (Navbar)</label>
+                    <div className="flex items-center gap-4">
+                        <div className="relative border-2 border-dashed border-gray-300 bg-gray-50 rounded-xl p-4 w-full text-center hover:bg-gray-100 transition cursor-pointer">
+                            <input 
+                                type="file" 
+                                accept="image/*" 
+                                onChange={async (e) => {
+                                    if (!e.target.files || e.target.files.length === 0) return;
+                                    const file = e.target.files[0];
+                                    const fileName = `logo-nav-${Date.now()}.png`;
+                                    const { data } = await supabase.storage.from('congreso').upload(fileName, file);
+                                    if (data) {
+                                        const { data: publicUrl } = supabase.storage.from('congreso').getPublicUrl(fileName);
+                                        setValue('logo_navbar_url', publicUrl.publicUrl);
+                                        toast.success("Logo Navbar subido");
+                                    }
+                                }} 
+                                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" 
+                            />
+                            <span className="text-sm text-gray-500 font-medium">Subir Logo Navbar</span>
+                        </div>
+                        {watch('logo_navbar_url') && (
+                            <img src={watch('logo_navbar_url')} className="h-12 w-auto object-contain bg-gray-800 rounded p-1" alt="preview" />
+                        )}
+                    </div>
+                    <input type="hidden" {...register("logo_navbar_url")} />
+                </div>
+
+                {/* 2. Logo Footer */}
+                <div>
+                    <label className="block text-xs font-bold text-gray-500 mb-2 uppercase">Logo Pie de Página (Footer)</label>
+                    <div className="flex items-center gap-4">
+                        <div className="relative border-2 border-dashed border-gray-300 bg-gray-50 rounded-xl p-4 w-full text-center hover:bg-gray-100 transition cursor-pointer">
+                            <input 
+                                type="file" 
+                                accept="image/*" 
+                                onChange={async (e) => {
+                                    if (!e.target.files || e.target.files.length === 0) return;
+                                    const file = e.target.files[0];
+                                    const fileName = `logo-footer-${Date.now()}.png`;
+                                    const { data } = await supabase.storage.from('congreso').upload(fileName, file);
+                                    if (data) {
+                                        const { data: publicUrl } = supabase.storage.from('congreso').getPublicUrl(fileName);
+                                        setValue('logo_footer_url', publicUrl.publicUrl);
+                                        toast.success("Logo Footer subido");
+                                    }
+                                }} 
+                                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" 
+                            />
+                            <span className="text-sm text-gray-500 font-medium">Subir Logo Footer</span>
+                        </div>
+                        {watch('logo_footer_url') && (
+                            <img src={watch('logo_footer_url')} className="h-12 w-auto object-contain bg-gray-800 rounded p-1" alt="preview" />
+                        )}
+                    </div>
+                    <input type="hidden" {...register("logo_footer_url")} />
                 </div>
 
             </div>
