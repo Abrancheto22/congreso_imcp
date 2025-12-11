@@ -39,7 +39,7 @@ export default function Hero({ datos }: { datos: DatosGenerales }) {
         className="absolute inset-0 z-0 bg-cover bg-center animate-ken-burns"
         style={{ backgroundImage: `url(${datos.fondo_portada})` }}
       >
-        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-black/80" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/10 to-black/50" />
       </div>
 
       {/* 2. Contenido */}

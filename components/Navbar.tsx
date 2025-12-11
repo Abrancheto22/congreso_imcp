@@ -18,7 +18,7 @@ export default function Navbar({ logoUrl }: { logoUrl?: string | null }) {
             <img 
                 src={logoUrl} 
                 alt="Logo Evento" 
-                className="h-10 md:h-14 w-auto object-contain" 
+                className="h-6 md:h-7 w-auto object-contain" 
             />
         ) : (
             // CASO B: NO hay logo, muestra SOLO el texto
