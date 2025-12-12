@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Pago } from '@/types/database';
 import { Copy, CreditCard, Smartphone, QrCode, X, Utensils, Bed, Bus, Info, Ticket } from 'lucide-react';
 import { toast } from 'sonner';
@@ -98,9 +99,10 @@ export default function PaymentSidebar({ pagos }: { pagos: Pago[] }) {
                             {pago.foto_url && (
                                 <button 
                                     onClick={(e) => { e.stopPropagation(); setQrOpen(pago.foto_url); }}
-                                    className="text-[9px] font-bold bg-gray-50 hover:bg-gray-200 text-gray-600 px-2 py-1 rounded border border-gray-200 transition flex items-center gap-1"
+                                    className="font-bold bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg transition-all duration-200 flex items-center gap-1.5 shadow-sm hover:shadow-md hover:-translate-y-0.5"
                                 >
-                                    <QrCode className="w-3 h-3" /> QR
+                                    <QrCode className="w-3.5 h-3.5" />
+                                    <span className="text-xs">QR</span>
                                 </button>
                             )}
                         </div>
@@ -122,15 +124,50 @@ export default function PaymentSidebar({ pagos }: { pagos: Pago[] }) {
         </div>
       </div>
 
-      {/* Modal QR */}
-      {qrOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in" onClick={() => setQrOpen(null)}>
-            <div className="bg-white p-2 rounded-xl max-w-xs w-full relative animate-in zoom-in-95" onClick={e => e.stopPropagation()}>
-                <button onClick={() => setQrOpen(null)} className="absolute -top-10 right-0 text-white"><X /></button>
-                <img src={qrOpen} className="w-full rounded-lg" alt="QR" />
+      {/* Portal para el Modal QR */}
+      {typeof window !== 'undefined' && qrOpen && createPortal(
+        <div 
+          className="fixed inset-0 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in" 
+          onClick={() => setQrOpen(null)}
+          style={{
+            zIndex: 9999,
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            width: '100vw',
+            height: '100vh',
+            overflow: 'hidden',
+            backgroundColor: 'rgba(0, 0, 0, 0.3)'
+          }}
+        >
+            <div 
+              className="bg-white p-4 rounded-xl max-w-xs w-full relative animate-in zoom-in-95" 
+              onClick={e => e.stopPropagation()}
+              style={{
+                position: 'relative',
+                zIndex: 10000,
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+              }}
+            >
+                <button 
+                  onClick={() => setQrOpen(null)} 
+                  className="absolute -top-10 right-0 text-white hover:bg-white/20 p-1 rounded-full transition-colors"
+                  aria-label="Cerrar modal de código QR"
+                >
+                    <X className="w-5 h-5" />
+                </button>
+                <img 
+                  src={qrOpen} 
+                  className="w-full rounded-lg" 
+                  alt="Código QR para realizar el pago" 
+                  style={{ maxHeight: '300px', objectFit: 'contain' }}
+                />
                 <p className="text-center text-xs text-gray-500 mt-2 font-medium">Escanea para pagar</p>
             </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
