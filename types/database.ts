@@ -35,6 +35,7 @@ export interface DatosGenerales {
   titulo_imagen_url: string | null;
   logo_navbar_url: string | null;
   logo_footer_url: string | null;
+  donacion_imagenes: string[] | null;
 }
 
 export interface Pago {

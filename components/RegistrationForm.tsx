@@ -28,7 +28,7 @@ export default function RegistrationForm() {
         setSuccess(false);
         setPreviewUrls([]);
         reset();
-      }, 5000);
+      }, 6000);
       return () => clearTimeout(timer);
     }
   }, [success, reset]);
@@ -110,9 +110,16 @@ export default function RegistrationForm() {
       <div className="text-center py-20 animate-fade-in bg-white p-8 rounded-2xl shadow-xl transition-all duration-500 border border-green-100">
         <CheckCircle className="w-20 h-20 text-green-500 mx-auto mb-6 animate-bounce" />
         <h2 className="text-3xl font-bold text-gray-900 mb-4">¡Registro Recibido!</h2>
-        <p className="text-gray-600 mb-4">
-          Hemos recibido tus datos y comprobantes.
+        
+        {/* MENSAJE NUEVO */}
+        <p className="text-gray-600 mb-4 font-medium">
+          Tu inscripción ha sido enviada
         </p>
+        <p className="text-sm text-gray-700 font-bold mb-4">
+          Te notificaremos por WhatsApp cuando tu pago y datos sean confirmados.
+        </p>
+        {/* FIN MENSAJE NUEVO */}
+        
         <p className="text-sm text-gray-400">
           El formulario se reiniciará en unos segundos...
         </p>

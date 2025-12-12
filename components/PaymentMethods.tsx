@@ -1,11 +1,17 @@
+// abrancheto22/congreso_imcp/Abrancheto22-congreso_imcp-0e99fb4e820aa5c0700d414c5dda17c5067b098d/components/PaymentMethods.tsx
+
 'use client';
 
 import { useState } from 'react';
 import { CreditCard, Smartphone, Copy, Heart, QrCode, X, Facebook, Instagram, MessageCircle } from 'lucide-react';
-import { Pago } from '../types/database';
+import { Pago, DatosGenerales } from '../types/database'; 
 import { toast } from 'sonner';
+// Imports necesarios para el carrusel
+import useEmblaCarousel from 'embla-carousel-react';
+import Autoplay from 'embla-carousel-autoplay';
 
-export default function PaymentMethods({ pagos }: { pagos: Pago[] }) {
+// Modificar la firma para aceptar datosGenerales
+export default function PaymentMethods({ pagos, datosGenerales }: { pagos: Pago[], datosGenerales: DatosGenerales | null }) {
   const [selectedQr, setSelectedQr] = useState<string | null>(null);
 
   const handleCopy = (text: string) => {
@@ -13,8 +19,20 @@ export default function PaymentMethods({ pagos }: { pagos: Pago[] }) {
     toast.success("¡Copiado!");
   };
 
+  // Configuración del Carrusel (Automático y sin botones de navegación)
+  // NOTA: Se eliminó 'speed: 5' para corregir el error de TypeScript.
+  const [emblaRef] = useEmblaCarousel({ 
+    loop: true,
+  }, [
+    Autoplay({ delay: 5000, stopOnInteraction: false, stopOnMouseEnter: true }) 
+  ]);
+  
+  const imagesToShow = datosGenerales?.donacion_imagenes && datosGenerales.donacion_imagenes.length > 0 
+    ? datosGenerales.donacion_imagenes 
+    : ["https://images.pexels.com/photos/1072824/pexels-photo-1072824.jpeg"]; // Imagen por defecto si no hay ninguna
+
   return (
-    <section id="pago" className="py-20 bg-gray-50/50 relative px-4">
+    <section id="pago" className="py-20 bg-white relative px-4">
       <div className="max-w-6xl mx-auto">
         
         {/* --- TARJETA UNIFICADA (CONTENEDOR PRINCIPAL) --- */}
@@ -22,15 +40,27 @@ export default function PaymentMethods({ pagos }: { pagos: Pago[] }) {
             
             <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[600px]">
                 
-                {/* LADO IZQUIERDO: IMAGEN (Ocupa toda la altura) */}
+                {/* LADO IZQUIERDO: CARRUSEL DE IMÁGENES */}
                 <div className="lg:col-span-5 relative min-h-[300px] lg:h-full group">
-                    <img 
-                        src="https://images.pexels.com/photos/1072824/pexels-photo-1072824.jpeg" 
-                        alt="Fondo Donaciones" 
-                        className="absolute inset-0 w-full h-full object-cover transition duration-1000"
-                    />
                     
-                    {/* Overlay Degradado y Texto */}
+                    {/* Contenedor Embla Carrusel */}
+                    <div className="overflow-hidden h-full w-full" ref={emblaRef}>
+                        <div className="flex h-full touch-pan-y">
+                            {imagesToShow.map((img, idx) => (
+                                <div key={idx} className="flex-[0_0_100%] min-w-0 relative h-full">
+                                    <img 
+                                        src={img} 
+                                        alt={`Fondo Donación ${idx + 1}`} 
+                                        // La transición ahora usa la clase de Tailwind 'duration-1000'
+                                        // Esto le da un efecto de desvanecimiento suave al cambiar
+                                        className="absolute inset-0 w-full h-full object-cover transition duration-1000"
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                    
+                    {/* Overlay Degradado y Texto (Fijo encima del carrusel) */}
                     <div className="absolute inset-0 bg-gradient-to-t from-orange-700/60 via-orange-800/30 to-transparent flex flex-col justify-end p-10 text-white">
                         <div className="bg-yellow-500 w-12 h-12 rounded-full flex items-center justify-center mb-4 shadow-lg animate-bounce-slow">
                             <Heart className="w-6 h-6 text-black fill-black" />
@@ -45,7 +75,7 @@ export default function PaymentMethods({ pagos }: { pagos: Pago[] }) {
                     </div>
                 </div>
 
-                {/* LADO DERECHO: CONTENIDO (Lista y Contacto) */}
+                {/* LADO DERECHO: CONTENIDO (Lista de Pagos) */}
                 <div className="lg:col-span-7 p-8 lg:p-12 flex flex-col justify-center bg-white">
                     
                     <div className="mb-8">

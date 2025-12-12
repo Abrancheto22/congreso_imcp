@@ -1,3 +1,5 @@
+// abrancheto22/congreso_imcp/Abrancheto22-congreso_imcp-0e99fb4e820aa5c0700d414c5dda17c5067b098d/app/page.tsx
+
 import { supabase } from '@/lib/supabase';
 import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
@@ -9,9 +11,8 @@ import Footer from '@/components/Footer';
 // Revalidación cada 60 segundos (ISR)
 export const revalidate = 60;
 
-export default async function Home() {
-  const datos = await getDatosGenerales();
-  async function getDatosGenerales() {
+// Función para obtener todos los datos
+async function getDatosGenerales() {
   const { data } = await supabase
     .from('datos_generales')
     .select('*')
@@ -19,14 +20,11 @@ export default async function Home() {
   return data;
 }
 
-  // 1. Datos Generales
-  const { data: datosGenerales } = await supabase
-    .from('datos_generales')
-    .select('*')
-    .single();
-
-  // 2. Ponentes (MODIFICADO: Sin límite)
-  // Quitamos .limit(3) para traer a TODOS los ponentes para el carrusel
+// Función principal
+export default async function Home() {
+  const datosGenerales = await getDatosGenerales();
+  
+  // 2. Ponentes
   const { data: ponentes } = await supabase
     .from('ponentes')
     .select('*')
@@ -40,18 +38,20 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen bg-gray-50">
-      <Navbar logoUrl={datos?.logo_navbar_url} />
+      <Navbar logoUrl={datosGenerales?.logo_navbar_url} />
 
       {datosGenerales ? <Hero datos={datosGenerales} /> : null}
 
-      {/* Pasamos los ponentes al componente (ya no necesitamos totalCount) */}
       {ponentes && ponentes.length > 0 && (
         <Speakers ponentes={ponentes} />
       )}
 
       {datosGenerales && <Location datos={datosGenerales} />}
-      {pagos && pagos.length > 0 && <PaymentMethods pagos={pagos} />}
-      <Footer logoUrl={datos?.logo_footer_url} />
+      
+      {/* CAMBIO: Pasamos datosGenerales al PaymentMethods */}
+      {pagos && pagos.length > 0 && <PaymentMethods pagos={pagos} datosGenerales={datosGenerales} />}
+      
+      <Footer logoUrl={datosGenerales?.logo_footer_url} />
     </main>
   );
 }

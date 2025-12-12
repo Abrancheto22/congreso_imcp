@@ -12,7 +12,9 @@ export default function EventForm() {
   
   // Estado local para manejar la galería visualmente antes de guardar
   const [galleryUrls, setGalleryUrls] = useState<string[]>([]);
+  const [donacionGalleryUrls, setDonacionGalleryUrls] = useState<string[]>([]);
   const [uploadingGallery, setUploadingGallery] = useState(false);
+  const [uploadingDonacionGallery, setUploadingDonacionGallery] = useState(false);
   
   const { register, handleSubmit, setValue, watch } = useForm();
   const previewValues = watch();
@@ -35,6 +37,7 @@ export default function EventForm() {
         
         // Cargar galería existente
         if (data.galeria_imagenes) setGalleryUrls(data.galeria_imagenes);
+        if (data.donacion_imagenes) setDonacionGalleryUrls(data.donacion_imagenes);
         
         const date = new Date(data.fecha_evento);
         date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
@@ -44,16 +47,24 @@ export default function EventForm() {
     fetchDatos();
   }, [setValue]);
 
-  // Función para subir fotos a la galería
-  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Función genérica para subir fotos (tanto a Galería Lugar como a Donaciones)
+  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>, isDonacion: boolean = false) => {
     if (!e.target.files || e.target.files.length === 0) return;
-    setUploadingGallery(true);
+    
+    if (isDonacion) {
+      setUploadingDonacionGallery(true);
+    } else {
+      setUploadingGallery(true);
+    }
 
     try {
         const newUrls: string[] = [];
+        const folder = isDonacion ? 'donaciones' : 'galeria';
+        const stateUpdater = isDonacion ? setDonacionGalleryUrls : setGalleryUrls;
+
         for (const file of Array.from(e.target.files)) {
             const fileExt = file.name.split('.').pop();
-            const fileName = `galeria-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+            const fileName = `${folder}-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
             
             const { error: uploadError } = await supabase.storage.from('congreso').upload(fileName, file);
             if (uploadError) throw uploadError;
@@ -61,19 +72,24 @@ export default function EventForm() {
             const { data } = supabase.storage.from('congreso').getPublicUrl(fileName);
             newUrls.push(data.publicUrl);
         }
-        // Agregamos las nuevas a las que ya existían
-        setGalleryUrls(prev => [...prev, ...newUrls]);
-        toast.success(`${newUrls.length} imágenes subidas`);
+        
+        stateUpdater(prev => [...prev, ...newUrls]);
+        toast.success(`${newUrls.length} imágenes subidas a ${isDonacion ? 'Donaciones' : 'Galería'}`);
     } catch (error) {
         toast.error("Error subiendo imágenes");
     } finally {
-        setUploadingGallery(false);
+        if (isDonacion) {
+            setUploadingDonacionGallery(false);
+        } else {
+            setUploadingGallery(false);
+        }
     }
   };
 
   // Función para quitar una foto de la lista (visual)
-  const removeImage = (indexToRemove: number) => {
-    setGalleryUrls(prev => prev.filter((_, idx) => idx !== indexToRemove));
+  const removeImage = (indexToRemove: number, isDonacion: boolean = false) => {
+    const stateUpdater = isDonacion ? setDonacionGalleryUrls : setGalleryUrls;
+    stateUpdater(prev => prev.filter((_, idx) => idx !== indexToRemove));
   };
 
   const onSubmit = async (formData: any) => {
@@ -92,7 +108,8 @@ export default function EventForm() {
           fondo_portada: formData.fondo_portada,
           google_maps_link: formData.google_maps_link,
           iframe_mapa: formData.iframe_mapa,
-          galeria_imagenes: galleryUrls, // <--- Guardamos el array actualizado
+          galeria_imagenes: galleryUrls,
+          donacion_imagenes: donacionGalleryUrls,
           titulo_imagen_url: formData.titulo_imagen_url,
           logo_navbar_url: formData.logo_navbar_url,
           logo_footer_url: formData.logo_footer_url
@@ -151,17 +168,54 @@ export default function EventForm() {
                 
                 {/* 1. Fondo (URL) */}
                 <div className="md:col-span-2">
-                    <label className="block text-xs font-bold text-gray-500 mb-1 uppercase">URL Imagen de Fondo (Wallpaper)</label>
-                    <input {...register("fondo_portada")} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-purple-500 font-mono text-sm text-gray-600" placeholder="https://..." />
+                  <label className="block text-xs font-bold text-gray-500 mb-3 uppercase">
+                        URL Imagen de Fondo (Wallpaper)
+                  </label>
+                  {/* Input Visual para subir */}
+                    <div className="flex items-center gap-4">
+                        <div className="relative border-2 border-dashed border-gray-300 bg-gray-50 rounded-xl p-4 w-full text-center hover:bg-gray-100 transition cursor-pointer">
+                            <input 
+                                type="file" 
+                                accept="image/png, image/webp" 
+                                onChange={async (e) => {
+                                    if (!e.target.files || e.target.files.length === 0) return;
+                                    const file = e.target.files[0];
+                                    const fileName = `portada-${Date.now()}.png`;
+                                    const { data } = await supabase.storage.from('congreso').upload(fileName, file);
+                                    if (data) {
+                                        const { data: publicUrl } = supabase.storage.from('congreso').getPublicUrl(fileName);
+                                        setValue('fondo_portada', publicUrl.publicUrl); // Guardamos la URL
+                                        toast.success("Imagen de título subida");
+                                    }
+                                }} 
+                                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" 
+                            />
+                            <span className="text-sm text-gray-500 font-medium">Click para subir PNG</span>
+                        </div>
+
+                        {/* Previsualización pequeña */}
+                        {watch('fondo_portada') && (
+                            <div className="w-32 h-20 bg-gray-800 rounded-lg border border-gray-600 flex items-center justify-center overflow-hidden relative group">
+                                <img src={watch('fondo_portada')} className="max-w-full max-h-full object-contain" alt="preview" />
+                                <button 
+                                    type="button"
+                                    onClick={() => setValue('fondo_portada', null)}
+                                    className="absolute top-1 right-1 bg-red-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition"
+                                >
+                                    <X className="w-3 h-3" />
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 <hr className="md:col-span-2 border-gray-100 my-2" />
 
                 {/* 2. Título como Imagen (PNG) */}
                 <div className="md:col-span-2">
+                  
                     <label className="block text-xs font-bold text-gray-500 mb-3 uppercase">
                         Imagen del Título (PNG Transparente)
-                        <span className="block text-[10px] text-gray-400 normal-case">Si subes esto, reemplazará al texto escrito del nombre del evento.</span>
                     </label>
                     
                     {/* Input Visual para subir */}
@@ -200,8 +254,6 @@ export default function EventForm() {
                             </div>
                         )}
                     </div>
-                    {/* Input oculto para registrar el valor en el form */}
-                    <input type="hidden" {...register("titulo_imagen_url")} />
                 </div>
 
             </div>
@@ -265,6 +317,44 @@ export default function EventForm() {
                     )}
                 </div>
 
+            </div>
+          </div>
+
+          {/* --- NUEVO GRUPO: GALERÍA DE DONACIONES --- */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mt-6">
+            <div className="p-4 bg-gray-50 border-b border-gray-100 flex items-center gap-2">
+                <ImageIcon className="w-4 h-4 text-orange-600" />
+                <h3 className="text-sm font-bold text-gray-700 uppercase">Galería de Donaciones</h3>
+            </div>
+            <div className="p-6 space-y-6">
+                
+                {/* Botón Subir */}
+                <div className="relative border-2 border-dashed border-gray-300 bg-gray-50 rounded-xl p-6 text-center hover:bg-gray-100 transition cursor-pointer mb-4">
+                    {/* Al llamar handleGalleryUpload con 'true', sabe que es para donaciones */}
+                    <input type="file" multiple accept="image/*" onChange={(e) => handleGalleryUpload(e, true)} className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" />
+                    <div className="flex flex-col items-center gap-2 pointer-events-none">
+                        {uploadingDonacionGallery ? <Loader2 className="animate-spin text-blue-600" /> : <Upload className="text-gray-400" />}
+                        <span className="text-sm font-medium text-gray-600">{uploadingDonacionGallery ? "Subiendo..." : "Click para agregar fotos (Carrusel Pagos)"}</span>
+                    </div>
+                </div>
+
+                {/* Grid de Miniaturas */}
+                {donacionGalleryUrls.length > 0 && (
+                    <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
+                        {donacionGalleryUrls.map((url, idx) => (
+                            <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 group">
+                                <img src={url} className="w-full h-full object-cover" alt="donacion-galeria" />
+                                <button 
+                                    type="button"
+                                    onClick={() => removeImage(idx, true)}
+                                    className="absolute top-1 right-1 bg-red-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition hover:bg-red-700"
+                                >
+                                    <X className="w-3 h-3" />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
           </div>
 

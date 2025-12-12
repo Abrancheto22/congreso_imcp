@@ -45,11 +45,6 @@ export default async function RegistroPage() {
           
           <aside className="lg:col-span-5 lg:sticky lg:top-8 space-y-4 lg:space-y-6">
               <PaymentSidebar pagos={pagos} />
-              
-              <div className="bg-white border border-blue-100 rounded-xl p-3 flex items-center justify-center gap-2 text-xs text-blue-800 shadow-sm">
-                <span className="bg-blue-100 p-1 rounded-full">💡</span>
-                <p>¿Dudas? <span className="font-bold cursor-pointer underline">Contáctanos</span></p>
-              </div>
           </aside>
 
           <div className="lg:col-span-7">

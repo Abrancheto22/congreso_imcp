@@ -14,7 +14,6 @@ const LocationMap = memo(({ datos }: { datos: DatosGenerales }) => {
     : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(datos.lugar)}`;
 
   return (
-    // CAMBIO: h-[300px] en móvil y lg:h-full (que ahora será 400px)
     <div className="relative w-full h-[300px] lg:h-full bg-gray-100 rounded-[2rem] overflow-hidden shadow-sm border border-gray-200 group">
       
       {datos.iframe_mapa ? (
@@ -130,7 +129,7 @@ const LocationGallery = ({ imagenesDB }: { imagenesDB: string[] | null }) => {
 export default function Location({ datos }: { datos: DatosGenerales }) {
   return (
     // CAMBIO: py-16 en lugar de py-24 (menos altura general)
-    <section id="ubicacion" className="py-16 bg-gray-50/50">
+    <section id="ubicacion" className="py-16 bg-gray-90">
       <div className="max-w-7xl mx-auto px-4">
         
         {/* Cabecera Compacta */}
