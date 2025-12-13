@@ -30,7 +30,7 @@ export default function Speakers({ ponentes }: { ponentes: Ponente[] }) {
   const preventSelectionClass = "select-none";
 
   return (
-    <section id="invitados" className="py-24 bg-white overflow-hidden">
+    <section id="invitados" className="py-24 bg-gray-90 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 relative">
         
         <div className="text-center mb-16">

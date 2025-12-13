@@ -129,7 +129,7 @@ const LocationGallery = ({ imagenesDB }: { imagenesDB: string[] | null }) => {
 export default function Location({ datos }: { datos: DatosGenerales }) {
   return (
     // CAMBIO: py-16 en lugar de py-24 (menos altura general)
-    <section id="ubicacion" className="py-16 bg-gray-90">
+    <section id="ubicacion" className="py-16 bg-white">
       <div className="max-w-7xl mx-auto px-4">
         
         {/* Cabecera Compacta */}
