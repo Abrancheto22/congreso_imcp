@@ -4,8 +4,6 @@ import { useState } from 'react';
 import { CreditCard, Smartphone, Copy, Heart, QrCode, X } from 'lucide-react';
 import { Pago, DatosGenerales } from '../types/database'; 
 import { toast } from 'sonner';
-import useEmblaCarousel from 'embla-carousel-react';
-import Autoplay from 'embla-carousel-autoplay';
 
 export default function PaymentMethods({ pagos, datosGenerales }: { pagos: Pago[], datosGenerales: DatosGenerales | null }) {
   const [selectedQr, setSelectedQr] = useState<string | null>(null);
@@ -14,54 +12,48 @@ export default function PaymentMethods({ pagos, datosGenerales }: { pagos: Pago[
     navigator.clipboard.writeText(text);
     toast.success("¡Copiado!");
   };
-
-  const [emblaRef] = useEmblaCarousel({ 
-    loop: true,
-  }, [
-    Autoplay({ delay: 5000, stopOnInteraction: false, stopOnMouseEnter: true }) 
-  ]);
   
   const imagesToShow = datosGenerales?.donacion_imagenes && datosGenerales.donacion_imagenes.length > 0 
     ? datosGenerales.donacion_imagenes 
     : ["https://images.pexels.com/photos/1072824/pexels-photo-1072824.jpeg"];
 
+  // Usamos siempre la primera imagen fija
+  const staticImage = imagesToShow[0];
+
   return (
-    <section id="pago" className="py-20 bg-gray-90 relative px-4">
+    <section id="pago" className="py-20 bg-gray-50 relative px-4">
       <div className="max-w-6xl mx-auto">
         
-        {/* --- TARJETA UNIFICADA (Grande) --- */}
+        {/* --- TARJETA UNIFICADA --- */}
         <div className="bg-white rounded-[2.5rem] shadow-2xl border border-white/60 overflow-hidden relative isolate">
             
             <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[600px]">
                 
-                {/* LADO IZQUIERDO: CARRUSEL GRANDE (5 Columnas) */}
-                <div className="lg:col-span-5 relative min-h-[300px] lg:h-full group bg-gray-100">
+                {/* LADO IZQUIERDO: IMAGEN */}
+                <div className="lg:col-span-5 relative group bg-gray-100 lg:h-full">
                     
-                    {/* Carrusel */}
-                    <div className="overflow-hidden h-full w-full" ref={emblaRef}>
-                        <div className="flex h-full touch-pan-y">
-                            {imagesToShow.map((img, idx) => (
-                                <div key={idx} className="flex-[0_0_100%] min-w-0 relative h-full">
-                                    <img 
-                                        src={img} 
-                                        alt={`Fondo Donación ${idx + 1}`} 
-                                        className="absolute inset-0 w-full h-full object-cover transition duration-1000"
-                                    />
-                                </div>
-                            ))}
-                        </div>
+                    {/* Contenedor de la imagen */}
+                    {/* CAMBIO CLAVE: Quitamos 'h-full' fijo en móvil para que el contenedor crezca con la imagen */}
+                    <div className="w-full relative lg:h-full">
+                        <img 
+                            src={staticImage} 
+                            alt={`Fondo Donación`} 
+                            // CAMBIO IMPORTANTE:
+                            // Móvil: 'relative w-full h-auto' -> La imagen empuja el contenedor y se ve completa.
+                            // Desktop (lg): 'lg:absolute lg:inset-0 lg:h-full lg:object-cover' -> Se adapta a la columna lateral.
+                            className="relative w-full h-auto lg:absolute lg:inset-0 lg:h-full lg:object-cover transition duration-1000 block"
+                        />
                     </div>
 
                     {/* DEGRADADO NARANJA + TEXTO */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-orange-950/50 via-orange-600/10 to-transparent pointer-events-none flex items-end">
+                    <div className="absolute inset-0 bg-gradient-to-t from-orange-950/80 via-orange-900/20 to-transparent pointer-events-none flex items-end">
                         <div className="p-8 w-full pb-10">
-                            {/* CAMBIO: De 'tracking-widest' a 'tracking-wide' para juntar más las letras */}
-                            <h3 className="text-white text-2xl font-bold tracking-wides drop-shadow-lg mb-3 leading-tight font-sans">
+                            <h3 className="text-white text-2xl font-bold tracking-wide drop-shadow-lg mb-2 leading-tight font-sans">
                                 Nuestro sueño
                             </h3>
-                            <h3 className="text-white text-1xl font-normal tracking-wides drop-shadow-lg mb-3 leading-tight font-sans ">
+                            <p className="text-white/90 text-sm font-medium tracking-wide drop-shadow-md mb-4 leading-relaxed max-w-md">
                                 Construir un lugar donde las personas puedan experimentar el amor y la presencia de Dios, y crecer en fe y compromiso con Él.
-                            </h3>
+                            </p>
                             <div className="h-1.5 w-20 bg-yellow-400 rounded-full shadow-sm"></div>
                         </div>
                     </div>
