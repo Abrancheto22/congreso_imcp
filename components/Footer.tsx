@@ -17,15 +17,35 @@ export default function Footer({ logoUrl }: { logoUrl?: string | null }) {
                 ) : (
                     <span className="text-yellow-500 text-3xl font-bold">✝</span>
                 )}
-                <h3 className="text-xl font-bold text-white tracking-wide leading-none">
-                  Iglesia <br/> <span className="text-gray-400 text-base font-normal">Principe de Paz</span>
-                </h3>
+                <div className="flex flex-col">
+                  <span className="text-gray-400 text-base font-normal">Iglesia Misión de Cristo en el Perú</span>
+                  <p className="text-gray-300 text-base font-bold">Principe de Paz</p>
+
+                </div>
+                
             </div>
-            
+             
             {/* El texto que querías recuperar */}
-            <p className="text-xs text-gray-500 max-w-sm leading-relaxed">
-              Llevando el mensaje de esperanza y renovación a las nuevas generaciones. Un lugar para crecer en fe y comunidad.
-            </p>
+            
+
+            <div className="flex flex-col md:flex-row gap-6 w-full mt-4">
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold text-yellow-500 mb-2">
+                  Visión
+                </h3>
+                <p className="text-xs text-gray-300 leading-relaxed">
+                  Ser una iglesia Cristocéntrica en crecimiento con infraestructura propia, solidamente establecida en los fundamentos bíblicos y que cumpla su rol misionero en la sociedad.
+                </p>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold text-yellow-500 mb-2">
+                  Misión
+                </h3>
+                <p className="text-xs text-gray-300 leading-relaxed">
+                  Formar líderes competentes, comprometidos con la extensión del reino de Dios.
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* 2. LADO DERECHO: Tarjeta de Facebook/Ubicación */}

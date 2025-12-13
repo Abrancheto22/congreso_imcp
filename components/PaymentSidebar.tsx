@@ -25,8 +25,8 @@ export default function PaymentSidebar({ pagos }: { pagos: Pago[] }) {
         
         {/* Cabecera de Precio */}
         <div className="p-4 text-center border-b border-blue-900/10 border-dashed relative">
-            <h2 className="font-bold uppercase tracking-wider text-[10px] mb-0.5 opacity-80 flex items-center justify-center gap-1.5">
-                <Ticket className="w-3.5 h-3.5" /> Valor de Inscripción
+            <h2 className="font-bold uppercase tracking-wider text-[15px] mb-0.5 opacity-80 flex items-center justify-center gap-1.5">
+                <Ticket className="w-4 h-4" /> Valor de Inscripción
             </h2>
             <div className="flex items-center justify-center gap-0.5">
                 <span className="text-2xl font-bold">S/</span>
@@ -37,7 +37,7 @@ export default function PaymentSidebar({ pagos }: { pagos: Pago[] }) {
 
         {/* Lista de Beneficios */}
         <div className="bg-white/90 backdrop-blur-sm p-4">
-            <p className="text-center text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-3">Tu entrada incluye:</p>
+            <p className="text-center text-[12px] text-gray-500 font-bold uppercase tracking-widest mb-3">Incluye:</p>
             <ul className="space-y-2">
                 <li className="flex items-center gap-2.5 text-xs font-bold text-gray-700 bg-white p-2 rounded-lg shadow-sm border border-yellow-100/50">
                     <div className="bg-orange-100 p-1.5 rounded-md text-orange-600 flex-shrink-0">
