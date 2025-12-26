@@ -4,6 +4,7 @@ import PaymentSidebar from '@/components/PaymentSidebar';
 import Footer from '@/components/Footer';
 import { supabase } from '@/lib/supabase';
 import { Users } from 'lucide-react';
+import WhatsAppButton from '@/components/WhatsAppButton';
 
 // Forzamos que la página sea dinámica para que el contador no se cachee
 export const dynamic = 'force-dynamic';
@@ -39,10 +40,8 @@ export default async function RegistroPage() {
     <main className="min-h-screen bg-gray-50 flex flex-col">
       
       {/* HEADER OSCURO */}
-      <div className="bg-gray-900 relative w-full min-h-[100px] shadow-md z-30 flex items-center justify-center flex-shrink-0">
-        <div className="w-full h-full">
-            <Navbar logoUrl={datos?.logo_navbar_url} />
-        </div>
+      <div className="bg-gray-900 w-full h-24 shadow-md z-30 relative flex items-center">
+          <Navbar logoUrl={datos?.logo_navbar_url} />
       </div>
       
       {/* CONTENIDO PRINCIPAL */}
@@ -95,7 +94,10 @@ export default async function RegistroPage() {
 
       {/* FOOTER */}
       <Footer logoUrl={datos?.logo_footer_url} />
-
+      <WhatsAppButton 
+              phone="51912434962"
+              message="Hola, me gustaría saber más sobre cómo apoyar al proyecto del campamento." 
+            />
     </main>
   );
 }

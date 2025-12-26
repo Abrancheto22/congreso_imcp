@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Pago } from '@/types/database';
-import { Copy, CreditCard, Smartphone, QrCode, X, Utensils, Bed, Bus, Info, Ticket } from 'lucide-react';
+// Agregamos AlertCircle para la advertencia
+import { Copy, CreditCard, Smartphone, QrCode, X, Utensils, Bed, Bus, Info, Ticket, ExternalLink, Zap, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function PaymentSidebar({ pagos }: { pagos: Pago[] }) {
@@ -17,13 +18,11 @@ export default function PaymentSidebar({ pagos }: { pagos: Pago[] }) {
   return (
     <div className="space-y-5">
       
-      {/* 1. TARJETA "TICKET" (Compacta) */}
+      {/* 1. TARJETA "TICKET" */}
       <div className="bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-2xl shadow-md text-blue-900 overflow-hidden relative">
-        {/* Decoración de círculos */}
         <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-4 h-4 bg-gray-50 rounded-full"></div>
         <div className="absolute -right-2 top-1/2 -translate-y-1/2 w-4 h-4 bg-gray-50 rounded-full"></div>
         
-        {/* Cabecera de Precio */}
         <div className="p-4 text-center border-b border-blue-900/10 border-dashed relative">
             <h2 className="font-bold uppercase tracking-wider text-[15px] mb-0.5 opacity-80 flex items-center justify-center gap-1.5">
                 <Ticket className="w-4 h-4" /> Valor de Inscripción
@@ -35,7 +34,6 @@ export default function PaymentSidebar({ pagos }: { pagos: Pago[] }) {
             </div>
         </div>
 
-        {/* Lista de Beneficios */}
         <div className="bg-white/90 backdrop-blur-sm p-4">
             <p className="text-center text-[12px] text-gray-500 font-bold uppercase tracking-widest mb-3">Incluye:</p>
             <ul className="space-y-2">
@@ -61,10 +59,9 @@ export default function PaymentSidebar({ pagos }: { pagos: Pago[] }) {
         </div>
       </div>
 
-      {/* 2. ZONA DE PAGO (INSTRUCCIONES + CUENTAS) */}
+      {/* 2. ZONA DE PAGO */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
         
-        {/* Cabecera Instrucciones */}
         <div className="bg-gray-50 p-4 border-b border-gray-100 flex items-start gap-3">
             <div className="bg-white p-1.5 rounded-md shadow-sm border border-gray-100 text-blue-600">
                 <Info className="w-4 h-4" />
@@ -79,8 +76,52 @@ export default function PaymentSidebar({ pagos }: { pagos: Pago[] }) {
             </div>
         </div>
 
-        {/* Lista de Cuentas */}
         <div className="p-4 space-y-3">
+            
+            {/* --- MERCADO PAGO CON ADVERTENCIA DE COMISIÓN --- */}
+            <div className="relative group overflow-hidden bg-gradient-to-tr from-blue-600 to-blue-400 rounded-xl p-[1px] shadow-sm transition-all hover:shadow-md">
+                <div className="bg-white rounded-[10px] p-3 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 bg-blue-600 text-white text-[9px] font-black px-2 py-0.5 rounded-bl-lg uppercase flex items-center gap-1">
+                        <Zap className="w-2 h-2 fill-white" /> Online
+                    </div>
+
+                    <div className="flex items-center gap-3 mb-2">
+                        <div className="bg-blue-50 p-2 rounded-lg text-blue-600">
+                            <CreditCard className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <p className="font-bold text-gray-900 text-xs">Mercado Pago</p>
+                            <p className="text-[10px] text-gray-400">Tarjetas y Pago Instantáneo</p>
+                        </div>
+                    </div>
+
+                    {/* MENSAJE DE ADVERTENCIA DE COMISIÓN */}
+                    <div className="mb-3 flex items-start gap-1.5 bg-amber-50 border border-amber-100 p-2 rounded-lg">
+                        <AlertCircle className="w-3 h-3 text-amber-600 mt-0.5 shrink-0" />
+                        <p className="text-[9px] text-amber-700 leading-tight font-bold">
+                            Esta opción incluye una comisión por procesamiento de pago en línea.
+                        </p>
+                    </div>
+
+                    <a 
+                        href="https://mpago.la/1j9Auad" 
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2.5 rounded-lg transition-transform active:scale-95 shadow-sm"
+                    >
+                        PAGAR AHORA <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                </div>
+            </div>
+
+            {/* Separador */}
+            <div className="flex items-center gap-2 my-2">
+                <div className="h-[1px] bg-gray-100 flex-1"></div>
+                <span className="text-[9px] font-bold text-gray-300 uppercase tracking-widest">Otras cuentas</span>
+                <div className="h-[1px] bg-gray-100 flex-1"></div>
+            </div>
+
+            {/* Lista de Cuentas Manuales (Yape, BCP, etc.) */}
             {pagos.map((pago) => {
                 const isWallet = pago.nombre.toLowerCase().includes('yape') || pago.nombre.toLowerCase().includes('plin');
 
@@ -98,7 +139,7 @@ export default function PaymentSidebar({ pagos }: { pagos: Pago[] }) {
                             </div>
                             {pago.foto_url && (
                                 <button 
-                                    onClick={(e) => { e.stopPropagation(); setQrOpen(pago.foto_url); }}
+                                    onClick={(e) => { e.stopPropagation(); setQrOpen(pago.foto_url || null); }}
                                     className="font-bold bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg transition-all duration-200 flex items-center gap-1.5 shadow-sm hover:shadow-md hover:-translate-y-0.5"
                                 >
                                     <QrCode className="w-3.5 h-3.5" />
@@ -124,46 +165,24 @@ export default function PaymentSidebar({ pagos }: { pagos: Pago[] }) {
         </div>
       </div>
 
-      {/* Portal para el Modal QR */}
+      {/* Modal QR */}
       {typeof window !== 'undefined' && qrOpen && createPortal(
         <div 
-          className="fixed inset-0 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in" 
+          className="fixed inset-0 flex items-center justify-center p-4 z-[9999]" 
           onClick={() => setQrOpen(null)}
-          style={{
-            zIndex: 9999,
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            width: '100vw',
-            height: '100vh',
-            overflow: 'hidden',
-            backgroundColor: 'rgba(0, 0, 0, 0.3)'
-          }}
         >
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in"></div>
             <div 
-              className="bg-white p-4 rounded-xl max-w-xs w-full relative animate-in zoom-in-95" 
+              className="bg-white p-4 rounded-xl max-w-xs w-full relative animate-in zoom-in-95 shadow-2xl z-10" 
               onClick={e => e.stopPropagation()}
-              style={{
-                position: 'relative',
-                zIndex: 10000,
-                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
-              }}
             >
                 <button 
                   onClick={() => setQrOpen(null)} 
                   className="absolute -top-10 right-0 text-white hover:bg-white/20 p-1 rounded-full transition-colors"
-                  aria-label="Cerrar modal de código QR"
                 >
                     <X className="w-5 h-5" />
                 </button>
-                <img 
-                  src={qrOpen} 
-                  className="w-full rounded-lg" 
-                  alt="Código QR para realizar el pago" 
-                  style={{ maxHeight: '300px', objectFit: 'contain' }}
-                />
+                <img src={qrOpen} className="w-full rounded-lg" alt="QR Pago" style={{ maxHeight: '300px', objectFit: 'contain' }} />
                 <p className="text-center text-xs text-gray-500 mt-2 font-medium">Escanea para pagar</p>
             </div>
         </div>,

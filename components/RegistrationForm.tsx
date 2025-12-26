@@ -85,7 +85,7 @@ export default function RegistrationForm() {
             nombre_completo: data.nombre,
             departamento: data.departamento,
             iglesia: data.iglesia,
-            genero: data.genero, // <--- CAMPO AGREGADO
+            genero: data.genero,
             edad: parseInt(data.edad),
             numero: data.celular,
             voucher_url: uploadedUrls 
@@ -135,34 +135,51 @@ export default function RegistrationForm() {
       <h2 className="text-2xl font-bold text-gray-900 mb-2">Completa tu Inscripción</h2>
       <p className="text-gray-500 text-sm mb-6">Llene los datos con cuidado para validar su entrada.</p>
       
-      {/* Nombre */}
+      {/* Nombre Completo */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Nombre Completo</label>
         <input
-          {...register("nombre", { required: "Requerido" })}
-          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition placeholder:text-gray-400"
+          {...register("nombre", { 
+            required: "El nombre es obligatorio",
+            pattern: {
+              value: /^[A-Za-zñÑáéíóúÁÉÍÓÚ\s]+$/,
+              message: "Solo se permiten letras y espacios"
+            }
+          })}
+          className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 outline-none transition ${errors.nombre ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-500'}`}
           placeholder="Ej: Juan Pérez Almendra"
         />
-        {errors.nombre && <span className="text-red-500 text-xs mt-1">Nombre requerido</span>}
+        {errors.nombre && <span className="text-red-500 text-xs mt-1 block">{errors.nombre.message as string}</span>}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {/* Celular / WhatsApp */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Celular / WhatsApp</label>
           <input 
-            {...register("celular", { required: "Requerido" })} 
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition placeholder:text-gray-400" 
-            placeholder="987 654 321"
+            type="tel"
+            {...register("celular", { 
+              required: "El celular es obligatorio",
+              pattern: {
+                value: /^[0-9]+$/,
+                message: "Solo se permiten números"
+              },
+              minLength: { value: 9, message: "Debe tener 9 dígitos" },
+              maxLength: { value: 9, message: "Debe tener 9 dígitos" }
+            })} 
+            className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 outline-none transition ${errors.celular ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-500'}`}
+            placeholder="987654321"
           />
+          {errors.celular && <span className="text-red-500 text-xs mt-1 block">{errors.celular.message as string}</span>}
         </div>
         
-        {/* Departamento */}
+        {/* Departamento (Sin cambios) */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Departamento</label>
           <div className="relative">
             <MapPin className="absolute left-3 top-3 w-4 h-4 text-gray-400 pointer-events-none" />
             <select
-                {...register("departamento", { required: "Selecciona uno" })}
+                {...register("departamento", { required: "Selecciona una región" })}
                 className="w-full pl-9 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition bg-white text-gray-700 appearance-none cursor-pointer"
             >
                 <option value="">Seleccionar...</option>
@@ -171,43 +188,52 @@ export default function RegistrationForm() {
                 ))}
             </select>
           </div>
-          {errors.departamento && <span className="text-red-500 text-xs mt-1">Selecciona tu región</span>}
+          {errors.departamento && <span className="text-red-500 text-xs mt-1 block">Selecciona tu región</span>}
         </div>
       </div>
 
-      {/* FILA DE 3: Iglesia, Género, Edad */}
+      {/* Iglesia, Género, Edad */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        {/* Iglesia */}
         <div className="md:col-span-1">
           <label className="block text-sm font-medium text-gray-700 mb-1">Iglesia</label>
           <input 
-            {...register("iglesia")} 
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition placeholder:text-gray-400" 
+            {...register("iglesia", {
+              pattern: {
+                value: /^[A-Za-zñÑáéíóúÁÉÍÓÚ\s]+$/,
+                message: "Nombre de iglesia inválido"
+              }
+            })} 
+            className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 outline-none transition ${errors.iglesia ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-500'}`}
             placeholder="Ej: Comunidad de Fe"
           />
+          {errors.iglesia && <span className="text-red-500 text-xs mt-1 block">{errors.iglesia.message as string}</span>}
         </div>
         
-        {/* NUEVO CAMPO GÉNERO */}
+        {/* Género */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Género</label>
           <select 
-            {...register("genero", { required: "Requerido" })} 
+            {...register("genero", { required: "Selecciona tu género" })} 
             className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition bg-white text-gray-700 cursor-pointer"
           >
             <option value="">Seleccionar...</option>
             <option value="Masculino">Masculino</option>
             <option value="Femenino">Femenino</option>
           </select>
-          {errors.genero && <span className="text-red-500 text-xs mt-1">Requerido</span>}
+          {errors.genero && <span className="text-red-500 text-xs mt-1 block">Requerido</span>}
         </div>
 
+        {/* Edad */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Edad</label>
           <input 
             type="number" 
-            {...register("edad", { required: "Requerido", min: 10 })} 
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition placeholder:text-gray-400" 
+            {...register("edad", { required: "Ingresa tu edad", min: { value: 10, message: "Mínimo 10 años" } })} 
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition" 
             placeholder="Ej: 24"
           />
+          {errors.edad && <span className="text-red-500 text-xs mt-1 block">{errors.edad.message as string}</span>}
         </div>
       </div>
 

@@ -39,9 +39,17 @@ export interface DatosGenerales {
 }
 
 export interface Pago {
-  id: string;
+  id: number;
   nombre: string;
   destinatario: string | null;
   numero: string | null;
   foto_url: string | null;
+}
+
+export interface DatosDonaciones {
+  id: number;
+  titulo: string;
+  descripcion: string;
+  imagenes: string[];
+  videos: string[];
 }

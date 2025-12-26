@@ -58,6 +58,9 @@ export default function AdminNavbar() {
           <Link href="/admin/pagos" className={linkClass('/admin/pagos')}>
             <CreditCard className="w-4 h-4" /> Pagos
           </Link>
+          <Link href="/admin/donaciones" className={linkClass('/admin/donaciones')}>
+            <CreditCard className="w-4 h-4" /> Donaciones
+          </Link>
 
         </div>
 

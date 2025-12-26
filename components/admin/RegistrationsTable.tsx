@@ -10,6 +10,8 @@ import { exportToPdf } from '@/lib/pdfExport';
 export default function RegistrationsTable() {
   const [registros, setRegistros] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [currentImage, setCurrentImage] = useState('');
   
   // Estados de Filtros
   const [searchTerm, setSearchTerm] = useState('');
@@ -312,18 +314,23 @@ export default function RegistrationsTable() {
                     if (vouchers.length === 0) return <p className="text-gray-400 italic text-sm">No hay archivos adjuntos.</p>;
 
                     return vouchers.map((url: string, idx: number) => (
-                      <a 
+                      <div 
                         key={idx} 
-                        href={url} 
-                        target="_blank" 
-                        rel="noreferrer" 
-                        className="group relative aspect-square bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition"
+                        className="group relative aspect-square bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition cursor-pointer"
+                        onClick={() => {
+                          setCurrentImage(url);
+                          setViewerOpen(true);
+                        }}
                       >
-                        <img src={url} alt={`Voucher ${idx}`} className="w-full h-full object-cover" />
+                        <img 
+                          src={url} 
+                          alt={`Voucher ${idx}`} 
+                          className="w-full h-full object-cover"
+                        />
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition flex items-center justify-center">
-                            <Eye className="text-white opacity-0 group-hover:opacity-100 drop-shadow-md" />
+                          <Eye className="text-white opacity-0 group-hover:opacity-100 drop-shadow-md" />
                         </div>
-                      </a>
+                      </div>
                     ));
                   })()}
                 </div>
@@ -352,6 +359,34 @@ export default function RegistrationsTable() {
                 </button>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Visor de imágenes */}
+      {viewerOpen && (
+        <div 
+          className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4"
+          onClick={() => setViewerOpen(false)}
+        >
+          <button 
+            className="absolute top-4 right-4 text-white hover:bg-white/10 p-2 rounded-full"
+            onClick={(e) => {
+              e.stopPropagation();
+              setViewerOpen(false);
+            }}
+          >
+            <X className="w-6 h-6" />
+          </button>
+          <div 
+            className="max-w-full max-h-[90vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img 
+              src={currentImage} 
+              alt="Voucher" 
+              className="max-w-full max-h-[90vh] object-contain"
+            />
           </div>
         </div>
       )}

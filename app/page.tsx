@@ -7,6 +7,8 @@ import Speakers from '@/components/Speakers';
 import Location from '@/components/Location';
 import PaymentMethods from '@/components/PaymentMethods';
 import Footer from '@/components/Footer';
+import DonationTeaser from '@/components/DonationTeaser';
+import WhatsAppButton from '@/components/WhatsAppButton';
 
 // Revalidación cada 60 segundos (ISR)
 export const revalidate = 60;
@@ -47,11 +49,13 @@ export default async function Home() {
       )}
 
       {datosGenerales && <Location datos={datosGenerales} />}
-      
-      {/* CAMBIO: Pasamos datosGenerales al PaymentMethods */}
-      {pagos && pagos.length > 0 && <PaymentMethods pagos={pagos} datosGenerales={datosGenerales} />}
-      
+      <DonationTeaser datosGenerales={datosGenerales} />
+            
       <Footer logoUrl={datosGenerales?.logo_footer_url} />
+      <WhatsAppButton 
+              phone="51912434962"
+              message="Hola, me gustaría saber más sobre el congreso." 
+            />
     </main>
   );
 }
