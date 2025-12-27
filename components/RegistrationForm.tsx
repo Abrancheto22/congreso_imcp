@@ -142,7 +142,7 @@ export default function RegistrationForm() {
           {...register("nombre", { 
             required: "El nombre es obligatorio",
             pattern: {
-              value: /^[A-Za-zñÑáéíóúÁÉÍÓÚ\s]+$/,
+              value: /^[A-Za-zñÑáéíóúÁÉÍÓÚ\s_\-]+$/,
               message: "Solo se permiten letras y espacios"
             }
           })}
