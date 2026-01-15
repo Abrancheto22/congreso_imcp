@@ -14,7 +14,7 @@ export const exportToPdf = (data: Registro[], title: string = 'Lista de Inscrito
   doc.text(`Fecha de reporte: ${new Date().toLocaleDateString('es-PE')}`, 14, 30);
 
   // Definir columnas (Incluyendo las nuevas vacías)
-  const tableColumn = ["Nombre Completo", "Celular", "Dpto", "Iglesia", "Edad", "¿Crist?", "¿Baut?"];
+  const tableColumn = ["Nombre Completo", "Celular", "Dpto", "Iglesia", "Edad", "¿Eres cristiano?", "¿Eres bautizado?", "¿Tienes alergias?", "¿Tienes enfermedades?"];
 
   // Mapear datos
   const tableRows = data.map(reg => {
@@ -25,7 +25,9 @@ export const exportToPdf = (data: Registro[], title: string = 'Lista de Inscrito
       reg.iglesia,
       reg.edad,
       '', // Vacío para marcar manual
-      ''  // Vacío para marcar manual
+      '',  // Vacío para marcar manual
+      '',  // Vacío para alergias
+      ''   // Vacío para enfermedades
     ];
   });
 
@@ -48,13 +50,15 @@ export const exportToPdf = (data: Registro[], title: string = 'Lista de Inscrito
     },
     // Ajustamos los anchos para aprovechar la hoja horizontal
     columnStyles: {
-      0: { cellWidth: 70 }, // Nombre (Más espacio)
-      1: { cellWidth: 35 }, // Celular
-      2: { cellWidth: 35 }, // Dpto
-      3: { cellWidth: 60 }, // Iglesia (Más espacio)
-      4: { cellWidth: 15 }, // Edad
-      5: { cellWidth: 25 }, // ¿Crist?
-      6: { cellWidth: 25 }, // ¿Baut?
+      0: { cellWidth: 65 }, // Nombre
+      1: { cellWidth: 30 }, // Celular
+      2: { cellWidth: 25 }, // Dpto
+      3: { cellWidth: 50 }, // Iglesia
+      4: { cellWidth: 12 }, // Edad
+      5: { cellWidth: 22 }, // ¿Crist?
+      6: { cellWidth: 22 }, // ¿Baut?
+      7: { cellWidth: 25 }, // ¿Alerg?
+      8: { cellWidth: 25 }, // ¿Enfer?
     }
   });
 

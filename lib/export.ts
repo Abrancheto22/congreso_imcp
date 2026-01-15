@@ -14,6 +14,8 @@ export const exportToExcel = async (data: Registro[], fileName: string = 'Report
     { header: 'Departamento', key: 'departamento', width: 15 },
     { header: '¿Eres cristiano?', key: 'cristiano', width: 18 },
     { header: '¿Eres bautizado?', key: 'bautizado', width: 18 },
+    { header: '¿Tienes alergias?', key: 'alergias', width: 20 },
+    { header: '¿Tienes enfermedades?', key: 'enfermedades', width: 20 },
   ];
 
   // Agregar Datos
@@ -25,7 +27,9 @@ export const exportToExcel = async (data: Registro[], fileName: string = 'Report
       iglesia: reg.iglesia,
       departamento: reg.departamento,
       cristiano: '', 
-      bautizado: ''  
+      bautizado: '',
+      alergias: '',
+      enfermedades: ''
     });
   });
 
@@ -67,7 +71,7 @@ export const exportToExcel = async (data: Registro[], fileName: string = 'Report
             
             // Alineación según tipo de dato
             const columnKey = worksheet.getColumn(colNumber).key;
-            if (columnKey === 'edad' || columnKey === 'cristiano' || columnKey === 'bautizado') {
+            if (columnKey === 'edad' || columnKey === 'cristiano' || columnKey === 'bautizado' || columnKey === 'alergias' || columnKey === 'enfermedades') {
                 cell.alignment = { vertical: 'middle', horizontal: 'center' };
             } else {
                 cell.alignment = { vertical: 'middle', horizontal: 'left' };
