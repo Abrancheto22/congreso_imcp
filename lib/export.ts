@@ -5,32 +5,62 @@ export const exportToExcel = async (data: Registro[], fileName: string = 'Report
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet('Inscritos');
 
+  // Agrupar datos por departamento
+  const groupedData = data.reduce((acc, reg) => {
+    const dept = reg.departamento || 'Sin Departamento';
+    if (!acc[dept]) {
+      acc[dept] = [];
+    }
+    acc[dept].push(reg);
+    return acc;
+  }, {} as Record<string, Registro[]>);
+
   // Definir Columnas
   worksheet.columns = [
     { header: 'Nombre Completo', key: 'nombre', width: 35 },
     { header: 'Celular', key: 'numero', width: 15 },
-    { header: 'Edad', key: 'edad', width: 8 },
+    { header: 'Edad', key: 'edad', width: 10 },
     { header: 'Iglesia', key: 'iglesia', width: 25 },
     { header: 'Departamento', key: 'departamento', width: 15 },
-    { header: '¿Eres cristiano?', key: 'cristiano', width: 18 },
-    { header: '¿Eres bautizado?', key: 'bautizado', width: 18 },
-    { header: '¿Tienes alergias?', key: 'alergias', width: 20 },
-    { header: '¿Tienes enfermedades?', key: 'enfermedades', width: 20 },
+    { header: '¿Eres cristiano?', key: 'cristiano', width: 25 },
+    { header: '¿Eres bautizado?', key: 'bautizado', width: 25 },
+    { header: '¿Tienes alergias?', key: 'alergias', width: 25 },
+    { header: '¿Tienes enfermedades?', key: 'enfermedades', width: 30 },
   ];
 
-  // Agregar Datos
-  data.forEach((reg) => {
-    worksheet.addRow({
-      nombre: reg.nombre_completo,
-      numero: reg.numero,
-      edad: reg.edad,
-      iglesia: reg.iglesia,
-      departamento: reg.departamento,
-      cristiano: '', 
-      bautizado: '',
-      alergias: '',
-      enfermedades: ''
+  // Agregar Datos agrupados por departamento
+  let currentRow = 2;
+  Object.entries(groupedData).forEach(([dept, registros]) => {
+    // Agregar encabezado de departamento
+    const deptRow = worksheet.getRow(currentRow);
+    deptRow.getCell(1).value = dept;
+    deptRow.getCell(1).font = { bold: true, color: { argb: 'FFFFFF' }, size: 14 };
+    deptRow.getCell(1).fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: '166534' } // Verde oscuro
+    };
+    deptRow.getCell(1).alignment = { vertical: 'middle', horizontal: 'left' };
+    currentRow++;
+
+    // Agregar registros de este departamento
+    registros.forEach((reg) => {
+      worksheet.addRow({
+        nombre: reg.nombre_completo,
+        numero: reg.numero,
+        edad: reg.edad,
+        iglesia: reg.iglesia,
+        departamento: reg.departamento,
+        cristiano: '', 
+        bautizado: '',
+        alergias: '',
+        enfermedades: ''
+      });
+      currentRow++;
     });
+    
+    // Agregar espacio después de cada departamento
+    currentRow++;
   });
 
   // --- ESTILOS CORREGIDOS ---
