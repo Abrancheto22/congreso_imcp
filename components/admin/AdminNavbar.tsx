@@ -2,7 +2,7 @@
 
 import { supabase } from '@/lib/supabase';
 import { useRouter, usePathname } from 'next/navigation'; // <--- Importante: usePathname
-import { LogOut, LayoutDashboard, Users, Calendar, CreditCard } from 'lucide-react';
+import { LogOut, LayoutDashboard, Users, Calendar, CreditCard, BarChart3 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AdminNavbar() {
@@ -60,6 +60,9 @@ export default function AdminNavbar() {
           </Link>
           <Link href="/admin/donaciones" className={linkClass('/admin/donaciones')}>
             <CreditCard className="w-4 h-4" /> Donaciones
+          </Link>
+          <Link href="/admin/reportes" className={linkClass('/admin/reportes')}>
+            <BarChart3 className="w-4 h-4" /> Reportes
           </Link>
 
         </div>
